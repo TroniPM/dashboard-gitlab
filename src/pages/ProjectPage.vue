@@ -175,7 +175,7 @@
                 </template>
 
                 <template #item.duration="{ item }">
-                  <span class="text-caption">{{ item.duration != null ? formatDuration(item.duration) : '—' }}</span>
+                  <span class="text-caption">{{ pipelineDuration(item) != null ? formatDuration(pipelineDuration(item)!) : '—' }}</span>
                 </template>
 
                 <template #item.actions="{ item }">
@@ -202,7 +202,7 @@ import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useGitLabStore } from '@/stores/gitlab'
 import { useMetrics } from '@/composables/useMetrics'
-import { PIPELINE_STATUS_COLORS, PIPELINE_STATUS_LABELS } from '@/types/gitlab'
+import { PIPELINE_STATUS_COLORS, PIPELINE_STATUS_LABELS, type GitLabPipeline } from '@/types/gitlab'
 import MetricCard from '@/components/common/MetricCard.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import ChartFailuresTrend from '@/components/charts/ChartFailuresTrend.vue'
@@ -245,6 +245,14 @@ const pipelineHeaders = [
   { title: 'Duração', key: 'duration', sortable: true },
   { title: '', key: 'actions', sortable: false }
 ]
+
+const FINISHED_STATUSES = ['success', 'failed', 'canceled']
+function pipelineDuration(p: GitLabPipeline): number | null {
+  if (p.duration != null) return p.duration
+  if (!FINISHED_STATUSES.includes(p.status)) return null
+  const ms = new Date(p.updated_at).getTime() - new Date(p.created_at).getTime()
+  return ms > 0 ? Math.round(ms / 1000) : null
+}
 
 function statusColor(s: string): string {
   return PIPELINE_STATUS_COLORS[s] ?? 'default'
