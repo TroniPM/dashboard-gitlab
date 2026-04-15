@@ -342,6 +342,7 @@ export const useGitLabStore = defineStore('gitlab', () => {
     try {
       const client = createGitLabClient(settings.gitlabUrl, settings.token)
       projects.value = await fetchProjects(client)
+      await saveToCache()
       return true
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } }; message?: string }
