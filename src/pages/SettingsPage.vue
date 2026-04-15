@@ -124,8 +124,8 @@
                 {{ store.projects.length }} projetos encontrados
               </span>
               <div class="d-flex gap-2">
-                <v-btn size="x-small" variant="tonal" @click="selectAll">Todos</v-btn>
-                <v-btn size="x-small" variant="outlined" @click="selectNone">Nenhum</v-btn>
+                <v-btn size="x-small" variant="tonal" @click="selectAll" style="margin-right: 10px">Todos</v-btn>
+                <v-btn size="x-small" variant="outlined" @click="selectNone" style="margin-right: 10px">Nenhum</v-btn>
                 <v-btn size="x-small" variant="text" color="primary" @click="loadProjectList">
                   <v-icon start size="14">mdi-refresh</v-icon>Recarregar
                 </v-btn>

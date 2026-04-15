@@ -17,7 +17,7 @@
           <div class="text-body-1 font-weight-medium d-flex align-center gap-2">
             {{ title }}
             <v-chip v-if="done" color="success" size="x-small" variant="flat" style="margin-left: 10px">Concluído</v-chip>
-            <v-chip v-else-if="!active" size="x-small" variant="tonal" color="default">
+            <v-chip v-else-if="!active" size="x-small" variant="tonal" color="default" style="margin-left: 10px">
               <v-icon start size="12">mdi-lock-outline</v-icon>
               Aguardando passo anterior
             </v-chip>
