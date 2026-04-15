@@ -148,7 +148,7 @@
             <v-card-text class="pa-0">
               <v-data-table
                 :headers="pipelineHeaders"
-                :items="metrics.allPipelines.value"
+                :items="pipelineItems"
                 :items-per-page="20"
                 density="compact"
                 hover
@@ -174,8 +174,8 @@
                   <span class="text-caption">{{ formatDate(item.created_at) }}</span>
                 </template>
 
-                <template #item.duration="{ item }">
-                  <span class="text-caption">{{ pipelineDuration(item) != null ? formatDuration(pipelineDuration(item)!) : '—' }}</span>
+                <template #item._durationSec="{ item }">
+                  <span class="text-caption">{{ item._durationSec >= 0 ? formatDuration(item._durationSec) : '—' }}</span>
                 </template>
 
                 <template #item.actions="{ item }">
@@ -242,9 +242,13 @@ const pipelineHeaders = [
   { title: 'Branch', key: 'ref', sortable: true },
   { title: 'Origem', key: 'source', sortable: true },
   { title: 'Criada em', key: 'created_at', sortable: true },
-  { title: 'Duração', key: 'duration', sortable: true },
+  { title: 'Duração', key: '_durationSec', sortable: true },
   { title: '', key: 'actions', sortable: false }
 ]
+
+const pipelineItems = computed(() =>
+  metrics.allPipelines.value.map(p => ({ ...p, _durationSec: pipelineDuration(p) ?? -1 }))
+)
 
 const FINISHED_STATUSES = ['success', 'failed', 'canceled']
 function pipelineDuration(p: GitLabPipeline): number | null {
