@@ -1,7 +1,4 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import DashboardPage from '@/pages/DashboardPage.vue'
-import ProjectPage from '@/pages/ProjectPage.vue'
-import SettingsPage from '@/pages/SettingsPage.vue'
 
 export default createRouter({
   history: createWebHashHistory(),
@@ -10,19 +7,19 @@ export default createRouter({
     {
       path: '/dashboard',
       name: 'dashboard',
-      component: DashboardPage,
+      component: () => import('@/pages/DashboardPage.vue'),
       meta: { title: 'Dashboard Geral' }
     },
     {
       path: '/project/:id',
       name: 'project',
-      component: ProjectPage,
+      component: () => import('@/pages/ProjectPage.vue'),
       meta: { title: 'Detalhes do Projeto' }
     },
     {
       path: '/settings',
       name: 'settings',
-      component: SettingsPage,
+      component: () => import('@/pages/SettingsPage.vue'),
       meta: { title: 'Configurações' }
     }
   ]
