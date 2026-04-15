@@ -4,47 +4,6 @@ Dashboard para análise e monitoramento de pipelines e jobs do GitLab CI, com su
 
 ---
 
-## Endpoints utilizados
-
-> **Base URL:** `http://<seu-gitlab>/api/v4`  
-> Todas as requisições exigem o header `PRIVATE-TOKEN: <seu-token>`
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `GET` | `/user` | Valida as credenciais e obtém o nome do usuário autenticado |
-| `GET` | `/projects` | Lista os projetos dos quais o usuário é membro |
-| `GET` | `/projects/:id/pipelines` | Lista pipelines de um projeto em um intervalo de datas |
-| `GET` | `/projects/:id/pipelines/:pipeline_id/jobs` | Lista os jobs de uma pipeline (incluindo retries) |
-
-### Parâmetros relevantes
-
-**`/projects`**
-```
-membership=true
-order_by=name
-sort=asc
-per_page=100
-page=<N>
-```
-
-**`/projects/:id/pipelines`**
-```
-updated_after=<ISO8601>
-updated_before=<ISO8601>
-order_by=updated_at
-sort=desc
-per_page=100
-page=<N>
-```
-
-**`/projects/:id/pipelines/:pipeline_id/jobs`**
-```
-per_page=100
-include_retried=true
-```
-
----
-
 ## Instalação e execução
 
 ```bash
@@ -59,6 +18,18 @@ npm run build
 # Preview do build
 npm run preview
 ```
+---
+## Endpoints utilizados
+
+> **Base URL:** `http://<seu-gitlab>/api/v4`  
+> Todas as requisições exigem o header `PRIVATE-TOKEN: <seu-token>`
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/user` | Valida as credenciais e obtém o nome do usuário autenticado |
+| `GET` | `/projects` | Lista os projetos dos quais o usuário é membro |
+| `GET` | `/projects/:id/pipelines` | Lista pipelines de um projeto em um intervalo de datas |
+| `GET` | `/projects/:id/pipelines/:pipeline_id/jobs` | Lista os jobs de uma pipeline (incluindo retries) |
 
 ---
 
@@ -183,59 +154,6 @@ const jobs = await fetchJobsBatched(client, pipelines, 5, 250, (done, total) => 
 
 ---
 
-## Store GitLab (`src/stores/gitlab.ts`)
-
-Gerencia o estado global dos dados e o ciclo de carregamento.
-
-### `loadData()`
-
-Executa o carregamento completo em três fases:
-
-1. **projects** – busca a lista de projetos (filtra pelos selecionados nas configurações).
-2. **pipelines** – busca pipelines de cada projeto no intervalo de datas configurado.
-3. **jobs** – busca jobs das pipelines com falha (ou de todas, se `loadJobsForAllPipelines` estiver ativo), respeitando o limite `maxPipelinesForJobs`.
-
-Ao finalizar, salva tudo no cache (IndexedDB).
-
-### `cancelLoad()`
-
-Aborta o carregamento em andamento via `AbortController`.
-
-### `loadFromCache()`
-
-Restaura os dados do IndexedDB. Realiza automaticamente a migração de dados antigos presentes no `localStorage` para o IndexedDB na primeira execução. Retorna `true` se bem-sucedido.
-
-### `saveToCache()`
-
-Persiste projetos, pipelines, jobs e o intervalo de datas no IndexedDB.
-
-### `exportData()`
-
-Retorna uma string JSON com todos os dados atuais, pronta para salvar em arquivo.
-
-### `importData(raw)`
-
-Importa dados de uma string JSON previamente exportada, mesclando com os dados existentes sem duplicações. Retorna `{ ok: boolean; error?: string; added?: { projects: number; pipelines: number; jobs: number } }`.
-
-### `clearData()`
-
-Remove todos os dados da memória e do IndexedDB.
-
-### `loadingProgress`
-
-Objeto reativo com o estado atual do carregamento:
-
-```ts
-{
-  phase: 'idle' | 'projects' | 'pipelines' | 'jobs' | 'done'
-  message: string   // texto descritivo exibido na UI
-  current: number   // itens processados até agora
-  total: number     // total de itens nesta fase
-}
-```
-
----
-
 ## Store de Configurações (`src/stores/settings.ts`)
 
 | Propriedade | Tipo | Descrição |
@@ -250,43 +168,8 @@ Objeto reativo com o estado atual do carregamento:
 | `onlyProjectsWithData` | `boolean` | Se `true`, exibe apenas projetos que possuem ao menos uma pipeline carregada |
 | `isConfigured` | `computed<boolean>` | `true` se URL e token estiverem preenchidos |
 
-### `save()`
 
-Persiste as configurações no `localStorage` e o token em cookie.
-
-### `setQuickRange(days)`
-
-Define o intervalo de datas para os últimos N dias a partir de hoje.
-
-```ts
-settings.setQuickRange(7)  // últimos 7 dias
-```
-
----
-
-## Composable de Métricas (`src/composables/useMetrics.ts`)
-
-```ts
-const metrics = useMetrics(filtersRef)
-```
-
-Aceita um `Ref<MetricsFilters>` opcional com `{ projectIds?, branches?, statuses? }` para escopo dos dados.
-
-| Computed | Tipo | Descrição |
-|----------|------|-----------|
-| `scopedProjects` | `GitLabProject[]` | Projetos dentro do filtro ativo |
-| `allPipelines` | `GitLabPipeline[]` | Todas as pipelines dos projetos filtrados |
-| `failedPipelines` | `GitLabPipeline[]` | Pipelines com `status === 'failed'` |
-| `allLoadedJobs` | `GitLabJob[]` | Todos os jobs das pipelines carregadas |
-| `failedJobs` | `GitLabJob[]` | Jobs com falha e `allow_failure === false` |
-| `summaryStats` | objeto | KPIs gerais: `total`, `failed`, `succeeded`, `running`, `canceled`, `successRate`, `failureRate`, `avgDurationSec` |
-| `failuresByProject` | array | Contagem de falhas por projeto, ordenada por `failed` |
-| `failuresByStage` | array | Contagem de falhas por stage do pipeline |
-| `failureReasons` | array | Contagem por `failure_reason` dos jobs com falha |
-| `retryStats` | `RetryStats[]` | Jobs retentados: nome, projeto, total de retries, pipelines afetadas |
-| `failuresTrend` | array | Falhas e total diários `{ date, failed, total }` |
-| `availableBranches` | `string[]` | Branches disponíveis nos projetos filtrados |
-| `sourceDistribution` | array | Distribuição de pipelines com falha por `source` |
+Persiste as configurações no `indexedDB` e o token em cookie.
 
 ---
 
@@ -314,7 +197,7 @@ Assistente em 3 passos:
 1. Configurar URL e token, testar conexão.
 2. Carregar lista de projetos e selecionar quais monitorar (com busca e seleção/deseleção em massa).
 3. Definir intervalo de datas (com atalhos rápidos: 7d, 14d, 30d, 60d, 90d), opções avançadas e carregar dados (com barra de progresso por fase e botão de cancelamento).
-
+4. Definir configuração para mostrar ou esconder projetos que não possuem dados.
 Inclui ações de **exportar** e **importar** dados JSON e botão para **limpar** o cache.
 
 ---
