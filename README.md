@@ -69,7 +69,7 @@ npm run preview
 3. **Passo 2 – Projetos:** carregue a lista de projetos e selecione quais serão analisados. Deixe em branco para incluir todos.
 4. **Passo 3 – Carregar Dados:** defina o intervalo de datas e clique em **Carregar Dados**. O carregamento ocorre em três fases: projetos → pipelines → jobs.
 
-> As configurações (URL, projetos selecionados, intervalo de datas) são salvas no `localStorage`. O token é salvo em um cookie HttpOnly com validade de 365 dias.
+> As configurações (URL, projetos selecionados, intervalo de datas) são salvas no `localStorage`. O token é salvo em um cookie HttpOnly com validade de 365 dias. Os dados de pipelines, projetos e jobs são armazenados no **IndexedDB** do navegador (banco `gl_dashboard`). Dados salvos no `localStorage` por versões anteriores são migrados automaticamente para o IndexedDB na primeira execução.
 
 ---
 
@@ -195,7 +195,7 @@ Executa o carregamento completo em três fases:
 2. **pipelines** – busca pipelines de cada projeto no intervalo de datas configurado.
 3. **jobs** – busca jobs das pipelines com falha (ou de todas, se `loadJobsForAllPipelines` estiver ativo), respeitando o limite `maxPipelinesForJobs`.
 
-Ao finalizar, salva tudo no cache (`localStorage`).
+Ao finalizar, salva tudo no cache (IndexedDB).
 
 ### `cancelLoad()`
 
@@ -203,11 +203,11 @@ Aborta o carregamento em andamento via `AbortController`.
 
 ### `loadFromCache()`
 
-Tenta restaurar os dados do `localStorage`. Retorna `true` se bem-sucedido.
+Restaura os dados do IndexedDB. Realiza automaticamente a migração de dados antigos presentes no `localStorage` para o IndexedDB na primeira execução. Retorna `true` se bem-sucedido.
 
 ### `saveToCache()`
 
-Persiste projetos, pipelines, jobs e o intervalo de datas no `localStorage`.
+Persiste projetos, pipelines, jobs e o intervalo de datas no IndexedDB.
 
 ### `exportData()`
 
@@ -215,11 +215,11 @@ Retorna uma string JSON com todos os dados atuais, pronta para salvar em arquivo
 
 ### `importData(raw)`
 
-Importa dados de uma string JSON previamente exportada e atualiza as configurações de data. Retorna `{ ok: boolean; error?: string }`.
+Importa dados de uma string JSON previamente exportada, mesclando com os dados existentes sem duplicações. Retorna `{ ok: boolean; error?: string; added?: { projects: number; pipelines: number; jobs: number } }`.
 
 ### `clearData()`
 
-Remove todos os dados da memória e do `localStorage`.
+Remove todos os dados da memória e do IndexedDB.
 
 ### `loadingProgress`
 
@@ -247,6 +247,7 @@ Objeto reativo com o estado atual do carregamento:
 | `selectedProjectIds` | `number[]` | IDs dos projetos selecionados (vazio = todos) |
 | `loadJobsForAllPipelines` | `boolean` | Se `true`, carrega jobs de pipelines bem-sucedidas também |
 | `maxPipelinesForJobs` | `number` | Limite de pipelines para busca de jobs (padrão: 500) |
+| `onlyProjectsWithData` | `boolean` | Se `true`, exibe apenas projetos que possuem ao menos uma pipeline carregada |
 | `isConfigured` | `computed<boolean>` | `true` se URL e token estiverem preenchidos |
 
 ### `save()`
@@ -293,25 +294,26 @@ Aceita um `Ref<MetricsFilters>` opcional com `{ projectIds?, branches?, statuses
 
 ### `/dashboard` — Dashboard Geral
 
-Exibe todos os gráficos e KPIs. Possui painel de filtros (projeto, branch, status) colapsável. Os gráficos incluem:
+Exibe todos os gráficos e KPIs. Possui painel de filtros (projeto, branch, status) colapsável. Os gráficos e seções incluem:
 
-- Cards de métricas resumidas
+- Cards de métricas resumidas (total, falhas, taxa de sucesso, duração média, em execução, canceladas, taxa de falha, jobs com retry)
+- Tendência de falhas por dia (linha)
 - Falhas por projeto (barra horizontal)
 - Falhas por stage (barra)
 - Causas de falha / `failure_reason` (pizza)
-- Tendência de falhas por dia (linha)
 - Tabela de jobs com mais retries
+- Distribuição de pipelines com falha por origem (`source`)
 
 ### `/project/:id` — Detalhes do Projeto
 
-Visão focada em um único projeto: métricas, filtros de branch/status e gráficos equivalentes ao dashboard, mas escopo limitado ao projeto selecionado.
+Visão focada em um único projeto: métricas, filtros de branch/status e gráficos equivalentes ao dashboard, mas escopo limitado ao projeto selecionado. Inclui também uma tabela de histórico de pipelines com links diretos para o GitLab.
 
 ### `/settings` — Configurações
 
 Assistente em 3 passos:
 1. Configurar URL e token, testar conexão.
-2. Carregar lista de projetos e selecionar quais monitorar.
-3. Definir intervalo de datas e carregar dados (com barra de progresso por fase).
+2. Carregar lista de projetos e selecionar quais monitorar (com busca e seleção/deseleção em massa).
+3. Definir intervalo de datas (com atalhos rápidos: 7d, 14d, 30d, 60d, 90d), opções avançadas e carregar dados (com barra de progresso por fase e botão de cancelamento).
 
 Inclui ações de **exportar** e **importar** dados JSON e botão para **limpar** o cache.
 
