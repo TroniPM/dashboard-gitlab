@@ -106,14 +106,16 @@ export const useGitLabStore = defineStore('gitlab', () => {
   }
 
   async function saveToCache() {
-    const data: CachedData = {
+    // JSON round-trip strips Vue reactive Proxy wrappers, which IndexedDB's
+    // structured-clone algorithm cannot serialize.
+    const data: CachedData = JSON.parse(JSON.stringify({
       projects: projects.value,
       pipelines: pipelines.value,
       jobs: jobs.value,
       lastFetched: new Date().toISOString(),
       dateRangeStart: settings.dateRangeStart,
       dateRangeEnd: settings.dateRangeEnd
-    }
+    }))
     try {
       await _idbSet(IDB_KEY, data)
       lastFetched.value = data.lastFetched
