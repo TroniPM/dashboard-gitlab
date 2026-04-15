@@ -1,6 +1,6 @@
 <template>
   <v-card rounded="lg" variant="tonal" color="surface">
-    <v-card-title class="pa-4 pb-0 text-body-1 font-weight-medium">
+    <v-card-title class="pa-4 pb-0 text-body-1 font-weight-medium text-high-emphasis">
       <v-icon start size="18">mdi-source-repository</v-icon>
       Falhas por Projeto
     </v-card-title>
@@ -11,6 +11,7 @@
 
     <v-card-text v-else class="pa-2">
       <apexchart
+        :key="isDark ? 'dark' : 'light'"
         type="bar"
         :height="chartHeight"
         :options="chartOptions"
@@ -40,13 +41,17 @@ const series = computed(() => [
   { name: 'Sucesso', data: displayData.value.map(d => d.total - d.failed) }
 ])
 
+const labelColor = computed(() => isDark.value ? '#b0b0c8' : '#444444')
+const gridColor = computed(() => isDark.value ? '#2a2a3e' : '#d0d0d0')
+
 const chartOptions = computed(() => ({
   chart: {
     type: 'bar',
     background: 'transparent',
     toolbar: { show: false },
     stacked: true,
-    animations: { enabled: true }
+    animations: { enabled: true },
+    foreColor: labelColor.value
   },
   theme: { mode: isDark.value ? 'dark' : 'light' },
   colors: ['#f44336', '#4caf50'],
@@ -56,11 +61,13 @@ const chartOptions = computed(() => ({
   dataLabels: { enabled: false },
   xaxis: {
     categories: displayData.value.map(d => d.name),
-    labels: { formatter: (v: number) => Math.round(v).toString() }
+    labels: { formatter: (v: number) => Math.round(v).toString(), style: { colors: labelColor.value } },
+    axisBorder: { color: gridColor.value },
+    axisTicks: { color: gridColor.value }
   },
-  yaxis: { labels: { maxWidth: 160 } },
-  legend: { position: 'top' as const },
+  yaxis: { labels: { maxWidth: 160, style: { colors: labelColor.value } } },
+  legend: { position: 'top' as const, labels: { colors: labelColor.value } },
   tooltip: { shared: true, intersect: false },
-  grid: { borderColor: isDark.value ? '#2a2a3e' : '#e0e0e0' }
+  grid: { borderColor: gridColor.value }
 }))
 </script>

@@ -141,7 +141,7 @@
       <v-row dense>
         <v-col cols="12">
           <v-card rounded="lg" variant="tonal" color="surface">
-            <v-card-title class="pa-4 pb-2 text-body-1 font-weight-medium">
+            <v-card-title class="pa-4 pb-2 text-body-1 font-weight-medium text-high-emphasis">
               <v-icon start size="18">mdi-history</v-icon>
               Histórico de Pipelines
             </v-card-title>

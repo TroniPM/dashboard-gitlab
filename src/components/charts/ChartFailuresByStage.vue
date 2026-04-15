@@ -1,6 +1,6 @@
 <template>
   <v-card rounded="lg" variant="tonal" color="surface">
-    <v-card-title class="pa-4 pb-0 text-body-1 font-weight-medium">
+    <v-card-title class="pa-4 pb-0 text-body-1 font-weight-medium text-high-emphasis">
       <v-icon start size="18">mdi-layers-outline</v-icon>
       Falhas por Stage
     </v-card-title>
@@ -12,6 +12,7 @@
 
     <v-card-text v-else class="pa-2">
       <apexchart
+        :key="isDark ? 'dark' : 'light'"
         type="donut"
         height="280"
         :options="chartOptions"
@@ -36,14 +37,17 @@ const COLORS = ['#f44336', '#ff9800', '#2196f3', '#9c27b0', '#00bcd4', '#4caf50'
 
 const series = computed(() => props.data.map(d => d.count))
 
+const labelColor = computed(() => isDark.value ? '#b0b0c8' : '#444444')
+
 const chartOptions = computed(() => ({
-  chart: { background: 'transparent', animations: { enabled: true } },
+  chart: { background: 'transparent', animations: { enabled: true }, foreColor: labelColor.value },
   theme: { mode: isDark.value ? 'dark' : 'light' },
   colors: COLORS,
   labels: props.data.map(d => d.stage),
-  legend: { position: 'bottom' as const },
+  legend: { position: 'bottom' as const, labels: { colors: labelColor.value } },
   dataLabels: {
     enabled: true,
+    style: { colors: ['#ffffff'] },
     formatter: (val: number, opts: { seriesIndex: number }) => {
       return `${props.data[opts.seriesIndex]?.stage}: ${props.data[opts.seriesIndex]?.count}`
     }

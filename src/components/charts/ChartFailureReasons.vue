@@ -1,6 +1,6 @@
 <template>
   <v-card rounded="lg" variant="tonal" color="surface">
-    <v-card-title class="pa-4 pb-0 text-body-1 font-weight-medium">
+    <v-card-title class="pa-4 pb-0 text-body-1 font-weight-medium text-high-emphasis">
       <v-icon start size="18">mdi-alert-rhombus-outline</v-icon>
       Motivos de Falha
     </v-card-title>
@@ -11,6 +11,7 @@
 
     <v-card-text v-else class="pa-2">
       <apexchart
+        :key="isDark ? 'dark' : 'light'"
         type="bar"
         :height="chartHeight"
         :options="chartOptions"
@@ -38,23 +39,29 @@ const series = computed(() => [
   { name: 'Ocorrências', data: props.data.map(d => d.count) }
 ])
 
+const labelColor = computed(() => isDark.value ? '#b0b0c8' : '#444444')
+const gridColor = computed(() => isDark.value ? '#2a2a3e' : '#d0d0d0')
+
 const chartOptions = computed(() => ({
   chart: {
     type: 'bar',
     background: 'transparent',
     toolbar: { show: false },
-    animations: { enabled: true }
+    animations: { enabled: true },
+    foreColor: labelColor.value
   },
   theme: { mode: isDark.value ? 'dark' : 'light' },
   colors: ['#f44336'],
   plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
-  dataLabels: { enabled: true, style: { fontSize: '11px' } },
+  dataLabels: { enabled: true, style: { fontSize: '11px', colors: ['#ffffff'] } },
   xaxis: {
     categories: props.data.map(d => FAILURE_REASON_LABELS[d.reason] ?? d.reason),
-    labels: { formatter: (v: number) => Math.round(v).toString() }
+    labels: { formatter: (v: number) => Math.round(v).toString(), style: { colors: labelColor.value } },
+    axisBorder: { color: gridColor.value },
+    axisTicks: { color: gridColor.value }
   },
-  yaxis: { labels: { maxWidth: 200 } },
-  grid: { borderColor: isDark.value ? '#2a2a3e' : '#e0e0e0' },
+  yaxis: { labels: { maxWidth: 200, style: { colors: labelColor.value } } },
+  grid: { borderColor: gridColor.value },
   tooltip: { y: { formatter: (v: number) => `${v} jobs` } }
 }))
 </script>

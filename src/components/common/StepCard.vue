@@ -55,6 +55,7 @@ defineProps<{
   justify-content: center;
   flex-shrink: 0;
   font-size: 13px;
+  margin-right: 8px;
   transition: background-color 0.25s, color 0.25s;
 }
 .step-active {

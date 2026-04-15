@@ -1,0 +1,45 @@
+/* Ensure card titles are always visible in both themes */
+.v-card-title {
+  color: inherit !important;
+  opacity: 1 !important;
+}
+
+/* ApexCharts axis labels and titles visibility fix */
+.apexcharts-xaxis-label,
+.apexcharts-yaxis-label,
+.apexcharts-xaxis-title-text,
+.apexcharts-yaxis-title-text,
+.apexcharts-legend-text {
+  fill: currentColor;
+}
+
+/* Light theme: ensure chart text is dark */
+.v-theme--light .apexcharts-xaxis-label text,
+.v-theme--light .apexcharts-yaxis-label text,
+.v-theme--light .apexcharts-text,
+.v-theme--light .apexcharts-legend-text {
+  fill: #444444 !important;
+  color: #444444 !important;
+}
+
+.v-theme--light .apexcharts-gridline {
+  stroke: #d0d0d0 !important;
+}
+
+.v-theme--light .apexcharts-xaxis-tick,
+.v-theme--light .apexcharts-grid-border {
+  stroke: #d0d0d0 !important;
+}
+
+/* Dark theme: ensure chart text is light */
+.v-theme--dark .apexcharts-xaxis-label text,
+.v-theme--dark .apexcharts-yaxis-label text,
+.v-theme--dark .apexcharts-text,
+.v-theme--dark .apexcharts-legend-text {
+  fill: #b0b0c8 !important;
+  color: #b0b0c8 !important;
+}
+
+.v-theme--dark .apexcharts-gridline {
+  stroke: #2a2a3e !important;
+}

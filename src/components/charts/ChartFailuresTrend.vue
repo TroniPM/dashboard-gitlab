@@ -1,6 +1,6 @@
 <template>
   <v-card rounded="lg" variant="tonal" color="surface">
-    <v-card-title class="pa-4 pb-0 text-body-1 font-weight-medium">
+    <v-card-title class="pa-4 pb-0 text-body-1 font-weight-medium text-high-emphasis">
       <v-icon start size="18">mdi-chart-timeline-variant</v-icon>
       Tendência de Pipelines
     </v-card-title>
@@ -11,6 +11,7 @@
 
     <v-card-text v-else class="pa-2">
       <apexchart
+        :key="isDark ? 'dark' : 'light'"
         type="area"
         height="260"
         :options="chartOptions"
@@ -42,12 +43,16 @@ const series = computed(() => [
   }
 ])
 
+const labelColor = computed(() => isDark.value ? '#b0b0c8' : '#444444')
+const gridColor = computed(() => isDark.value ? '#2a2a3e' : '#d0d0d0')
+
 const chartOptions = computed(() => ({
   chart: {
     background: 'transparent',
     toolbar: { show: false },
     zoom: { enabled: false },
-    animations: { enabled: true, easing: 'easeinout', speed: 400 }
+    animations: { enabled: true, easing: 'easeinout', speed: 400 },
+    foreColor: labelColor.value
   },
   theme: { mode: isDark.value ? 'dark' : 'light' },
   colors: ['#2196f3', '#f44336'],
@@ -57,10 +62,18 @@ const chartOptions = computed(() => ({
     gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05 }
   },
   dataLabels: { enabled: false },
-  xaxis: { type: 'datetime', labels: { datetimeUTC: false } },
-  yaxis: { min: 0, labels: { formatter: (v: number) => Math.round(v).toString() } },
+  xaxis: {
+    type: 'datetime',
+    labels: { datetimeUTC: false, style: { colors: labelColor.value } },
+    axisBorder: { color: gridColor.value },
+    axisTicks: { color: gridColor.value }
+  },
+  yaxis: {
+    min: 0,
+    labels: { formatter: (v: number) => Math.round(v).toString(), style: { colors: labelColor.value } }
+  },
   tooltip: { x: { format: 'dd/MM/yyyy' }, shared: true, intersect: false },
-  legend: { position: 'top' as const },
-  grid: { borderColor: isDark.value ? '#2a2a3e' : '#e0e0e0' }
+  legend: { position: 'top' as const, labels: { colors: labelColor.value } },
+  grid: { borderColor: gridColor.value }
 }))
 </script>

@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import VueApexCharts from 'vue3-apexcharts'
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
+import '@/styles/global.css'
 
 import App from './App.vue'
 import router from './router'
