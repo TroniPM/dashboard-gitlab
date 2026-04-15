@@ -64,7 +64,7 @@
             <v-chip
               v-if="step1Done && connectionResult?.user"
               color="success"
-              variant="tonal"
+              variant="flat"
               prepend-icon="mdi-account-check"
             >
               {{ connectionResult.user }}
