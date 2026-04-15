@@ -144,7 +144,7 @@
             />
 
             <v-card variant="outlined" rounded="lg" class="project-list overflow-y-auto">
-              <v-list density="compact" select-strategy="independent">
+              <v-list density="compact" select-strategy="independent" class="d-flex flex-column" style="gap: 5px">
                 <v-list-item
                   v-for="project in filteredProjects"
                   :key="project.id"
@@ -277,11 +277,11 @@
           <v-alert type="info" variant="tonal" density="compact" class="mt-4" icon="mdi-information-outline">
             <template v-if="selectedIds.length === 0">
               Serão carregadas pipelines de <strong>todos os {{ store.projects.length }} projetos</strong>
-              de <strong>{{ settings.dateRangeStart }}</strong> até <strong>{{ settings.dateRangeEnd }}</strong>.
+              de <strong>{{ formatDateBR(settings.dateRangeStart) }}</strong> até <strong>{{ formatDateBR(settings.dateRangeEnd) }}</strong>.
             </template>
             <template v-else>
               Serão carregadas pipelines de <strong>{{ selectedIds.length }} projeto(s)</strong>
-              de <strong>{{ settings.dateRangeStart }}</strong> até <strong>{{ settings.dateRangeEnd }}</strong>.
+              de <strong>{{ formatDateBR(settings.dateRangeStart) }}</strong> até <strong>{{ formatDateBR(settings.dateRangeEnd) }}</strong>.
             </template>
           </v-alert>
 
@@ -578,6 +578,12 @@ const cacheSize = computed(() => {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'medium', timeStyle: 'short' })
+}
+
+function formatDateBR(iso: string) {
+  if (!iso) return ''
+  const [y, m, d] = iso.split('-')
+  return `${d}/${m}/${y}`
 }
 
 // ─── Export / Import ──────────────────────────────────────────────────────────
