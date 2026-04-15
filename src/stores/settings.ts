@@ -12,6 +12,7 @@ interface PersistedSettings {
   selectedProjectIds: number[]
   loadJobsForAllPipelines: boolean
   maxPipelinesForJobs: number
+  onlyProjectsWithData: boolean
 }
 
 function defaultDates(): { start: string; end: string } {
@@ -42,6 +43,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const selectedProjectIds = ref<number[]>(saved.selectedProjectIds ?? [])
   const loadJobsForAllPipelines = ref(saved.loadJobsForAllPipelines ?? false)
   const maxPipelinesForJobs = ref(saved.maxPipelinesForJobs ?? 500)
+  const onlyProjectsWithData = ref(saved.onlyProjectsWithData ?? true)
 
   const isConfigured = computed(() => !!(gitlabUrl.value.trim() && token.value.trim()))
 
@@ -52,7 +54,8 @@ export const useSettingsStore = defineStore('settings', () => {
       dateRangeEnd: dateRangeEnd.value,
       selectedProjectIds: selectedProjectIds.value,
       loadJobsForAllPipelines: loadJobsForAllPipelines.value,
-      maxPipelinesForJobs: maxPipelinesForJobs.value
+      maxPipelinesForJobs: maxPipelinesForJobs.value,
+      onlyProjectsWithData: onlyProjectsWithData.value
     }
     localStorage.setItem(LS_KEY, JSON.stringify(data))
     if (token.value) {
@@ -78,6 +81,7 @@ export const useSettingsStore = defineStore('settings', () => {
     selectedProjectIds,
     loadJobsForAllPipelines,
     maxPipelinesForJobs,
+    onlyProjectsWithData,
     isConfigured,
     save,
     setQuickRange

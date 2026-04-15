@@ -214,6 +214,7 @@
 <script setup lang="ts">
 import { reactive, computed, ref } from 'vue'
 import { useGitLabStore } from '@/stores/gitlab'
+import { useSettingsStore } from '@/stores/settings'
 import { useMetrics } from '@/composables/useMetrics'
 import MetricCard from '@/components/common/MetricCard.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -224,6 +225,7 @@ import ChartFailureReasons from '@/components/charts/ChartFailureReasons.vue'
 import TableRetries from '@/components/charts/TableRetries.vue'
 
 const store = useGitLabStore()
+const settings = useSettingsStore()
 const filtersOpen = ref(false)
 
 const filters = reactive({
@@ -240,9 +242,13 @@ const filtersRef = computed(() => ({
 
 const metrics = useMetrics(filtersRef)
 
-const projectItems = computed(() =>
-  store.projects.map(p => ({ title: p.name, value: p.id }))
-)
+const projectItems = computed(() => {
+  let list = store.projects
+  if (settings.onlyProjectsWithData) {
+    list = list.filter(p => (store.pipelines[p.id]?.length ?? 0) > 0)
+  }
+  return list.map(p => ({ title: p.name, value: p.id }))
+})
 
 const statusItems = [
   { title: 'Falhou', value: 'failed' },

@@ -37,7 +37,7 @@
       <!-- Project list -->
       <template v-if="!rail && store.projects.length > 0">
         <v-divider class="mt-2" />
-        <v-list-subheader>Projetos ({{ store.projects.length }})</v-list-subheader>
+        <v-list-subheader>Projetos ({{ filteredDrawerProjects.length }})</v-list-subheader>
 
         <div v-if="store.projects.length > 6" class="px-2 pb-1">
           <v-text-field
@@ -189,8 +189,12 @@ watch(() => store.loadingError, val => {
 })
 
 const filteredDrawerProjects = computed(() => {
-  if (!projectSearch.value) return store.projects
-  return store.projects.filter(p =>
+  let list = store.projects
+  if (settings.onlyProjectsWithData) {
+    list = list.filter(p => (store.pipelines[p.id]?.length ?? 0) > 0)
+  }
+  if (!projectSearch.value) return list
+  return list.filter(p =>
     p.name.toLowerCase().includes(projectSearch.value.toLowerCase())
   )
 })

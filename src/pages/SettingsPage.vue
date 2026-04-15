@@ -270,6 +270,22 @@
                 class="mt-3"
                 style="max-width: 240px"
               />
+              <v-switch
+                v-model="settings.onlyProjectsWithData"
+                color="primary"
+                density="compact"
+                hide-details
+                class="mt-3"
+              >
+                <template #label>
+                  <span class="text-body-2">
+                    Exibir apenas projetos com dados
+                    <span class="text-caption text-disabled d-block">
+                      Oculta do menu e do dashboard projetos que não possuem pipelines carregadas.
+                    </span>
+                  </span>
+                </template>
+              </v-switch>
             </div>
           </v-expand-transition>
 
