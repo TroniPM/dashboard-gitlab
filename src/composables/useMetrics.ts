@@ -1,5 +1,6 @@
 import { computed, type Ref } from 'vue'
 import { useGitLabStore } from '@/stores/gitlab'
+import { useSettingsStore } from '@/stores/settings'
 import type { GitLabJob, GitLabPipeline, GitLabProject, RetryStats } from '@/types/gitlab'
 
 export interface MetricsFilters {
@@ -10,13 +11,18 @@ export interface MetricsFilters {
 
 export function useMetrics(filters?: Ref<MetricsFilters>) {
   const store = useGitLabStore()
+  const settings = useSettingsStore()
 
   // ─── Scoped projects ───────────────────────────────────────────────────────
 
   const scopedProjects = computed((): GitLabProject[] => {
+    let base = store.projects
+    if (settings.onlyProjectsWithData) {
+      base = base.filter(p => (store.pipelines[p.id]?.length ?? 0) > 0)
+    }
     const ids = filters?.value.projectIds
-    if (!ids || ids.length === 0) return store.projects
-    return store.projects.filter(p => ids.includes(p.id))
+    if (!ids || ids.length === 0) return base
+    return base.filter(p => ids.includes(p.id))
   })
 
   // ─── All pipelines (respecting scope + branch/status filters) ─────────────
