@@ -263,7 +263,7 @@
                 label="Máx. pipelines para análise de jobs"
                 type="number"
                 min="10"
-                max="2000"
+                max="10000"
                 variant="outlined"
                 density="compact"
                 hide-details
