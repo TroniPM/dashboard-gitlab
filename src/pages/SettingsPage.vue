@@ -150,7 +150,7 @@
                   :key="project.id"
                   :value="project.id"
                   :active="selectedIds.includes(project.id)"
-                  active-color="primary"
+                  color="primary"
                   rounded="lg"
                   @click="toggleProject(project.id)"
                 >
