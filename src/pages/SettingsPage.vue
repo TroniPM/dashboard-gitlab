@@ -267,8 +267,7 @@
                 variant="outlined"
                 density="compact"
                 hide-details
-                class="mt-3"
-                style="max-width: 240px"
+                style="margin-top: 20px; max-width: 240px"
               />
             </div>
           </v-expand-transition>
