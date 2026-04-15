@@ -250,6 +250,10 @@ const FINISHED_STATUSES = ['success', 'failed', 'canceled']
 function pipelineDuration(p: GitLabPipeline): number | null {
   if (p.duration != null) return p.duration
   if (!FINISHED_STATUSES.includes(p.status)) return null
+  if (p.finished_at && p.started_at) {
+    const ms = new Date(p.finished_at).getTime() - new Date(p.started_at).getTime()
+    if (ms > 0) return Math.round(ms / 1000)
+  }
   const ms = new Date(p.updated_at).getTime() - new Date(p.created_at).getTime()
   return ms > 0 ? Math.round(ms / 1000) : null
 }

@@ -74,6 +74,10 @@ export function useMetrics(filters?: Ref<MetricsFilters>) {
       .filter(p => finishedStatuses.includes(p.status))
       .map(p => {
         if (p.duration != null) return p.duration
+        if (p.finished_at && p.started_at) {
+          const ms = new Date(p.finished_at).getTime() - new Date(p.started_at).getTime()
+          if (ms > 0) return ms / 1000
+        }
         const ms = new Date(p.updated_at).getTime() - new Date(p.created_at).getTime()
         return ms > 0 ? ms / 1000 : 0
       })
