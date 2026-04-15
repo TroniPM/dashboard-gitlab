@@ -66,7 +66,7 @@
               color="success"
               variant="flat"
               prepend-icon="mdi-account-check"
-            >
+              style="margin-left: 10px">
               {{ connectionResult.user }}
             </v-chip>
           </div>
@@ -102,7 +102,7 @@
               <v-icon start>mdi-source-repository</v-icon>
               Buscar Projetos
             </v-btn>
-            <span class="text-caption text-disabled">
+            <span class="text-caption text-disabled" style="margin-left: 10px">
               Lista todos os projetos aos quais você tem acesso.
             </span>
           </div>
