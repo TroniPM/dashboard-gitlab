@@ -62,12 +62,12 @@
             </v-btn>
 
             <v-chip
-              v-if="step1Done"
+              v-if="step1Done && connectionResult?.user"
               color="success"
               variant="tonal"
               prepend-icon="mdi-account-check"
             >
-              {{ connectionResult!.user }}
+              {{ connectionResult.user }}
             </v-chip>
           </div>
 
