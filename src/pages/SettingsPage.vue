@@ -596,13 +596,9 @@ const totalJobs = computed(() =>
   Object.values(store.jobs).reduce((s, js) => s + js.length, 0)
 )
 const cacheSize = computed(() => {
-  // Estimate from in-memory data (IndexedDB size is not directly readable)
+  // Use the same serialization as exportData() for an accurate byte count
   try {
-    const bytes = JSON.stringify({
-      projects: store.projects,
-      pipelines: store.pipelines,
-      jobs: store.jobs
-    }).length
+    const bytes = new TextEncoder().encode(store.exportData()).length
     const mb = bytes / 1024 / 1024
     return mb < 1 ? `${(mb * 1024).toFixed(0)} KB` : `${mb.toFixed(2)} MB`
   } catch { return '—' }
