@@ -248,6 +248,11 @@ const pipelineHeaders = [
 
 const FINISHED_STATUSES = ['success', 'failed', 'canceled']
 function pipelineDuration(p: GitLabPipeline): number | null {
+  const jobs = store.jobs[p.id]
+  if (jobs && jobs.length > 0) {
+    const sum = jobs.reduce((acc, j) => acc + (j.duration ?? 0), 0)
+    if (sum > 0) return Math.round(sum)
+  }
   if (p.duration != null) return p.duration
   if (!FINISHED_STATUSES.includes(p.status)) return null
   if (p.finished_at && p.started_at) {

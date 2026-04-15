@@ -67,12 +67,18 @@ export function useMetrics(filters?: Ref<MetricsFilters>) {
     const running = plines.filter(p => ['running', 'pending', 'preparing', 'waiting_for_resource'].includes(p.status)).length
     const canceled = plines.filter(p => p.status === 'canceled').length
 
-    // The pipeline list endpoint does not return `duration`; derive it from
-    // updated_at - created_at as a reasonable wall-clock approximation.
+    // Prefer summing job durations (matches GitLab UI). Fall back to
+    // finished_at - started_at, then updated_at - created_at when jobs
+    // are not yet loaded for a given pipeline.
     const finishedStatuses = ['success', 'failed', 'canceled']
     const durations = plines
       .filter(p => finishedStatuses.includes(p.status))
       .map(p => {
+        const jobs = store.jobs[p.id]
+        if (jobs && jobs.length > 0) {
+          const sum = jobs.reduce((acc, j) => acc + (j.duration ?? 0), 0)
+          if (sum > 0) return sum
+        }
         if (p.duration != null) return p.duration
         if (p.finished_at && p.started_at) {
           const ms = new Date(p.finished_at).getTime() - new Date(p.started_at).getTime()
