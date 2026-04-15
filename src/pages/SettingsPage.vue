@@ -270,22 +270,6 @@
                 class="mt-3"
                 style="max-width: 240px"
               />
-              <v-switch
-                v-model="settings.onlyProjectsWithData"
-                color="primary"
-                density="compact"
-                hide-details
-                class="mt-3"
-              >
-                <template #label>
-                  <span class="text-body-2">
-                    Exibir apenas projetos com dados
-                    <span class="text-caption text-disabled d-block">
-                      Oculta do menu e do dashboard projetos que não possuem pipelines carregadas.
-                    </span>
-                  </span>
-                </template>
-              </v-switch>
             </div>
           </v-expand-transition>
 
@@ -400,7 +384,7 @@
           </v-card-text>
         </v-card>
 
-        <v-card rounded="lg">
+        <v-card rounded="lg" class="mb-4">
           <v-card-title class="pa-4 pb-2 text-body-1">
             <v-icon start size="18">mdi-swap-vertical</v-icon>
             Exportar / Importar
@@ -453,6 +437,31 @@
                 ? `Mesclagem concluída! +${importResult.added?.projects ?? 0} projetos, +${importResult.added?.pipelines ?? 0} pipelines, +${importResult.added?.jobs ?? 0} jobs adicionados.`
                 : importResult.error }}
             </v-alert>
+          </v-card-text>
+        </v-card>
+
+        <v-card rounded="lg">
+          <v-card-title class="pa-4 pb-2 text-body-1">
+            <v-icon start size="18">mdi-eye-outline</v-icon>
+            Exibição de Projetos
+          </v-card-title>
+          <v-card-text>
+            <v-switch
+              v-model="settings.onlyProjectsWithData"
+              color="primary"
+              density="compact"
+              hide-details
+              @update:model-value="settings.save()"
+            >
+              <template #label>
+                <span class="text-body-2">
+                  Exibir apenas projetos com dados
+                  <span class="text-caption text-disabled d-block">
+                    Oculta do menu lateral e do dashboard os projetos sem pipelines carregadas.
+                  </span>
+                </span>
+              </template>
+            </v-switch>
           </v-card-text>
         </v-card>
       </v-col>
