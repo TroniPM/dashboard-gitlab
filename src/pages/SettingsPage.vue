@@ -431,7 +431,9 @@
               closable
               @click:close="importResult = null"
             >
-              {{ importResult.ok ? 'Importação concluída!' : importResult.error }}
+              {{ importResult.ok
+                ? `Mesclagem concluída! +${importResult.added?.projects ?? 0} projetos, +${importResult.added?.pipelines ?? 0} pipelines, +${importResult.added?.jobs ?? 0} jobs adicionados.`
+                : importResult.error }}
             </v-alert>
           </v-card-text>
         </v-card>
@@ -580,7 +582,7 @@ function formatDate(iso: string) {
 
 // ─── Export / Import ──────────────────────────────────────────────────────────
 const confirmClear = ref(false)
-const importResult = ref<{ ok: boolean; error?: string } | null>(null)
+const importResult = ref<{ ok: boolean; error?: string; added?: { projects: number; pipelines: number; jobs: number } } | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
 function exportData() {

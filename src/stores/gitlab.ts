@@ -74,6 +74,35 @@ export const useGitLabStore = defineStore('gitlab', () => {
     }
   }
 
+  // ─── Merge Helper ────────────────────────────────────────────────────────
+
+  function mergeData(
+    existingPipelines: Record<number, GitLabPipeline[]>,
+    existingJobs: Record<number, GitLabJob[]>,
+    newPipelines: Record<number, GitLabPipeline[]>,
+    newJobs: Record<number, GitLabJob[]>
+  ): { mergedPipelines: Record<number, GitLabPipeline[]>; mergedJobs: Record<number, GitLabJob[]> } {
+    const mergedPipelines: Record<number, GitLabPipeline[]> = { ...existingPipelines }
+    for (const [projectIdStr, pipelineList] of Object.entries(newPipelines)) {
+      const projectId = Number(projectIdStr)
+      const existing = mergedPipelines[projectId] ?? []
+      const existingIds = new Set(existing.map(p => p.id))
+      const toAdd = pipelineList.filter(p => !existingIds.has(p.id))
+      mergedPipelines[projectId] = [...existing, ...toAdd]
+    }
+
+    const mergedJobs: Record<number, GitLabJob[]> = { ...existingJobs }
+    for (const [pipelineIdStr, jobList] of Object.entries(newJobs)) {
+      const pipelineId = Number(pipelineIdStr)
+      const existing = mergedJobs[pipelineId] ?? []
+      const existingIds = new Set(existing.map(j => j.id))
+      const toAdd = jobList.filter(j => !existingIds.has(j.id))
+      mergedJobs[pipelineId] = [...existing, ...toAdd]
+    }
+
+    return { mergedPipelines, mergedJobs }
+  }
+
   // ─── Export / Import ─────────────────────────────────────────────────────
 
   function exportData(): string {
@@ -88,18 +117,40 @@ export const useGitLabStore = defineStore('gitlab', () => {
     return JSON.stringify(data, null, 2)
   }
 
-  function importData(raw: string): { ok: boolean; error?: string } {
+  function importData(raw: string): { ok: boolean; error?: string; added?: { projects: number; pipelines: number; jobs: number } } {
     try {
       const data = JSON.parse(raw) as CachedData
       if (!Array.isArray(data.projects)) throw new Error('Formato inválido')
-      projects.value = data.projects
-      pipelines.value = data.pipelines ?? {}
-      jobs.value = data.jobs ?? {}
-      lastFetched.value = data.lastFetched ?? null
+
+      // Merge projects (by id, keep existing, add new)
+      const existingProjectIds = new Set(projects.value.map(p => p.id))
+      const newProjects = data.projects.filter(p => !existingProjectIds.has(p.id))
+      projects.value = [...projects.value, ...newProjects]
+
+      // Merge pipelines and jobs without duplicating
+      const incomingPipelines = data.pipelines ?? {}
+      const incomingJobs = data.jobs ?? {}
+      const existingPipelineCount = Object.values(pipelines.value).reduce((s, arr) => s + arr.length, 0)
+      const existingJobCount = Object.values(jobs.value).reduce((s, arr) => s + arr.length, 0)
+
+      const { mergedPipelines, mergedJobs } = mergeData(
+        pipelines.value, jobs.value, incomingPipelines, incomingJobs
+      )
+      pipelines.value = mergedPipelines
+      jobs.value = mergedJobs
+
+      const addedPipelines = Object.values(mergedPipelines).reduce((s, arr) => s + arr.length, 0) - existingPipelineCount
+      const addedJobs = Object.values(mergedJobs).reduce((s, arr) => s + arr.length, 0) - existingJobCount
+
+      // Keep most recent lastFetched
+      if (data.lastFetched && (!lastFetched.value || data.lastFetched > lastFetched.value)) {
+        lastFetched.value = data.lastFetched
+      }
+
       if (data.dateRangeStart) settings.dateRangeStart = data.dateRangeStart
       if (data.dateRangeEnd) settings.dateRangeEnd = data.dateRangeEnd
       saveToCache()
-      return { ok: true }
+      return { ok: true, added: { projects: newProjects.length, pipelines: addedPipelines, jobs: addedJobs } }
     } catch (err: unknown) {
       return { ok: false, error: (err as Error).message }
     }
@@ -139,7 +190,10 @@ export const useGitLabStore = defineStore('gitlab', () => {
       if (settings.selectedProjectIds.length > 0) {
         projectList = projectList.filter(p => settings.selectedProjectIds.includes(p.id))
       }
-      projects.value = projectList
+      // Merge projects (keep existing that aren't in new list, add/update newly fetched)
+      const fetchedProjectIds = new Set(projectList.map(p => p.id))
+      const keptProjects = projects.value.filter(p => !fetchedProjectIds.has(p.id))
+      projects.value = [...keptProjects, ...projectList]
 
       if (signal.aborted) return
 
@@ -168,7 +222,9 @@ export const useGitLabStore = defineStore('gitlab', () => {
           newPipelines[project.id] = []
         }
       }
-      pipelines.value = newPipelines
+      // Merge new pipelines into existing (deduplicate by pipeline id per project)
+      const { mergedPipelines } = mergeData(pipelines.value, jobs.value, newPipelines, {})
+      pipelines.value = mergedPipelines
 
       if (signal.aborted) return
 
@@ -191,7 +247,7 @@ export const useGitLabStore = defineStore('gitlab', () => {
         total: capped.length
       }
 
-      jobs.value = await fetchJobsBatched(
+      const fetchedJobs = await fetchJobsBatched(
         client,
         capped,
         5,
@@ -203,6 +259,10 @@ export const useGitLabStore = defineStore('gitlab', () => {
         },
         signal
       )
+
+      // Merge new jobs into existing (deduplicate by job id per pipeline)
+      const { mergedJobs } = mergeData({}, jobs.value, {}, fetchedJobs)
+      jobs.value = mergedJobs
 
       if (!signal.aborted) {
         loadingProgress.value = { phase: 'done', message: 'Concluído!', current: 1, total: 1 }
