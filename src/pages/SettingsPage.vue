@@ -13,7 +13,7 @@
         <StepCard
           step="1"
           title="Conexão com o GitLab"
-          subtitle="Informe a URL da instância e o seu Personal Access Token."
+          subtitle="Informe a URL da instância e o seu Personal Access Token (pode ser gerado na url: GITLAB.../-/user_settings/personal_access_tokens)."
           :done="step1Done"
           :active="true"
         >
