@@ -240,13 +240,14 @@
             Opções avançadas
           </div>
           <v-expand-transition>
-            <div v-show="advancedOpen">
+            <div v-show="advancedOpen" class="d-flex flex-column align-center">
               <v-switch
                 v-model="settings.loadJobsForAllPipelines"
                 color="primary"
                 density="compact"
                 hide-details
                 class="mb-1"
+                style="width: 60%"
               >
                 <template #label>
                   <span class="text-body-2">
@@ -258,6 +259,7 @@
                   </span>
                 </template>
               </v-switch>
+              <v-divider style="width: 60%; margin: 16px 0" />
               <v-text-field
                 v-model.number="settings.maxPipelinesForJobs"
                 label="Máx. pipelines para análise de jobs"
@@ -267,7 +269,7 @@
                 variant="outlined"
                 density="compact"
                 hide-details
-                style="margin-top: 20px; max-width: 240px"
+                style="width: 60%"
               />
             </div>
           </v-expand-transition>
