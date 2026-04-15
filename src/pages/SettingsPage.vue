@@ -571,9 +571,14 @@ const totalJobs = computed(() =>
   Object.values(store.jobs).reduce((s, js) => s + js.length, 0)
 )
 const cacheSize = computed(() => {
+  // Estimate from in-memory data (IndexedDB size is not directly readable)
   try {
-    const raw = localStorage.getItem('gl_dashboard_data') ?? ''
-    const mb = raw.length / 1024 / 1024
+    const bytes = JSON.stringify({
+      projects: store.projects,
+      pipelines: store.pipelines,
+      jobs: store.jobs
+    }).length
+    const mb = bytes / 1024 / 1024
     return mb < 1 ? `${(mb * 1024).toFixed(0)} KB` : `${mb.toFixed(2)} MB`
   } catch { return '—' }
 })
@@ -609,7 +614,7 @@ async function handleImport(event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (!file) return
-  importResult.value = store.importData(await file.text())
+  importResult.value = await store.importData(await file.text())
   if (importResult.value.ok) {
     projectsLoaded.value = store.projects.length > 0
     step1Done.value = settings.isConfigured

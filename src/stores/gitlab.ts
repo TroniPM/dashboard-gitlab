@@ -9,7 +9,49 @@ import {
 } from '@/api/gitlab'
 import { useSettingsStore } from './settings'
 
-const LS_DATA_KEY = 'gl_dashboard_data'
+const LS_DATA_KEY = 'gl_dashboard_data' // kept only for one-time migration
+const IDB_DB_NAME = 'gl_dashboard'
+const IDB_DB_VERSION = 1
+const IDB_STORE = 'cache'
+const IDB_KEY = 'data'
+
+// ─── IndexedDB Helpers ───────────────────────────────────────────────────────
+
+function _openIDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_DB_NAME, IDB_DB_VERSION)
+    req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE)
+    req.onsuccess = () => resolve(req.result)
+    req.onerror = () => reject(req.error)
+  })
+}
+
+async function _idbGet<T>(key: string): Promise<T | undefined> {
+  const db = await _openIDB()
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(key)
+    req.onsuccess = () => resolve(req.result as T | undefined)
+    req.onerror = () => reject(req.error)
+  })
+}
+
+async function _idbSet(key: string, value: unknown): Promise<void> {
+  const db = await _openIDB()
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(IDB_STORE, 'readwrite').objectStore(IDB_STORE).put(value, key)
+    req.onsuccess = () => resolve()
+    req.onerror = () => reject(req.error)
+  })
+}
+
+async function _idbDelete(key: string): Promise<void> {
+  const db = await _openIDB()
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(IDB_STORE, 'readwrite').objectStore(IDB_STORE).delete(key)
+    req.onsuccess = () => resolve()
+    req.onerror = () => reject(req.error)
+  })
+}
 
 export interface LoadingProgress {
   phase: 'idle' | 'projects' | 'pipelines' | 'jobs' | 'done'
@@ -38,11 +80,21 @@ export const useGitLabStore = defineStore('gitlab', () => {
 
   // ─── Cache Persistence ───────────────────────────────────────────────────
 
-  function loadFromCache(): boolean {
+  async function loadFromCache(): Promise<boolean> {
     try {
-      const raw = localStorage.getItem(LS_DATA_KEY)
-      if (!raw) return false
-      const data = JSON.parse(raw) as CachedData
+      // One-time migration from localStorage → IndexedDB
+      const oldRaw = localStorage.getItem(LS_DATA_KEY)
+      if (oldRaw) {
+        try {
+          const oldData = JSON.parse(oldRaw) as CachedData
+          await _idbSet(IDB_KEY, oldData)
+          localStorage.removeItem(LS_DATA_KEY)
+          console.info('[GitLab Dashboard] Dados migrados do localStorage para IndexedDB')
+        } catch { /* ignore migration errors */ }
+      }
+
+      const data = await _idbGet<CachedData>(IDB_KEY)
+      if (!data) return false
       projects.value = data.projects ?? []
       pipelines.value = data.pipelines ?? {}
       jobs.value = data.jobs ?? {}
@@ -53,7 +105,7 @@ export const useGitLabStore = defineStore('gitlab', () => {
     }
   }
 
-  function saveToCache() {
+  async function saveToCache() {
     const data: CachedData = {
       projects: projects.value,
       pipelines: pipelines.value,
@@ -63,14 +115,11 @@ export const useGitLabStore = defineStore('gitlab', () => {
       dateRangeEnd: settings.dateRangeEnd
     }
     try {
-      const json = JSON.stringify(data)
-      const sizeMB = (json.length / 1024 / 1024).toFixed(2)
-      localStorage.setItem(LS_DATA_KEY, json)
+      await _idbSet(IDB_KEY, data)
       lastFetched.value = data.lastFetched
-      console.info(`[GitLab Dashboard] Cache salvo: ${sizeMB} MB`)
-    } catch {
-      loadingError.value =
-        'Cache excedeu limite do localStorage. Exporte os dados e reduza o intervalo de datas.'
+      console.info('[GitLab Dashboard] Cache salvo no IndexedDB')
+    } catch (err) {
+      loadingError.value = 'Erro ao salvar cache no IndexedDB: ' + (err as Error).message
     }
   }
 
@@ -117,7 +166,7 @@ export const useGitLabStore = defineStore('gitlab', () => {
     return JSON.stringify(data, null, 2)
   }
 
-  function importData(raw: string): { ok: boolean; error?: string; added?: { projects: number; pipelines: number; jobs: number } } {
+  async function importData(raw: string): Promise<{ ok: boolean; error?: string; added?: { projects: number; pipelines: number; jobs: number } }> {
     try {
       const data = JSON.parse(raw) as CachedData
       if (!Array.isArray(data.projects)) throw new Error('Formato inválido')
@@ -149,7 +198,7 @@ export const useGitLabStore = defineStore('gitlab', () => {
 
       if (data.dateRangeStart) settings.dateRangeStart = data.dateRangeStart
       if (data.dateRangeEnd) settings.dateRangeEnd = data.dateRangeEnd
-      saveToCache()
+      await saveToCache()
       return { ok: true, added: { projects: newProjects.length, pipelines: addedPipelines, jobs: addedJobs } }
     } catch (err: unknown) {
       return { ok: false, error: (err as Error).message }
@@ -161,7 +210,7 @@ export const useGitLabStore = defineStore('gitlab', () => {
     pipelines.value = {}
     jobs.value = {}
     lastFetched.value = null
-    localStorage.removeItem(LS_DATA_KEY)
+    _idbDelete(IDB_KEY) // fire-and-forget
   }
 
   // ─── Main Load ───────────────────────────────────────────────────────────
@@ -266,7 +315,7 @@ export const useGitLabStore = defineStore('gitlab', () => {
 
       if (!signal.aborted) {
         loadingProgress.value = { phase: 'done', message: 'Concluído!', current: 1, total: 1 }
-        saveToCache()
+        await saveToCache()
       }
     } catch (err: unknown) {
       if ((err as { name?: string }).name === 'CanceledError') return
@@ -303,7 +352,7 @@ export const useGitLabStore = defineStore('gitlab', () => {
     }
   }
 
-  // Init from cache on store creation
+  // Init from cache on store creation (async, fire-and-forget)
   loadFromCache()
 
   return {
