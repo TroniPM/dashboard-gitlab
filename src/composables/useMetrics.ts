@@ -165,7 +165,8 @@ export function useMetrics(filters?: Ref<MetricsFilters>) {
             projectName: project?.name ?? String(pipeline.project_id),
             totalRetries: 0,
             affectedPipelines: 0,
-            failureReasons: []
+            failureReasons: [],
+            jobInstances: []
           }
         }
 
@@ -176,6 +177,17 @@ export function useMetrics(filters?: Ref<MetricsFilters>) {
           if (!map[key].failureReasons.includes(r)) {
             map[key].failureReasons.push(r)
           }
+        }
+
+        for (const j of jobList) {
+          map[key].jobInstances.push({
+            jobId: j.id,
+            jobUrl: j.web_url,
+            pipelineId: pipeline.id,
+            pipelineIid: pipeline.iid,
+            pipelineUrl: pipeline.web_url,
+            status: j.status
+          })
         }
       }
     }

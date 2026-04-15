@@ -128,6 +128,15 @@ export interface CachedData {
 
 // ─── Derived Metrics ─────────────────────────────────────────────────────────
 
+export interface RetryJobInstance {
+  jobId: number
+  jobUrl: string
+  pipelineId: number
+  pipelineIid: number
+  pipelineUrl: string
+  status: JobStatus
+}
+
 export interface RetryStats {
   jobName: string
   projectId: number
@@ -135,6 +144,7 @@ export interface RetryStats {
   totalRetries: number
   affectedPipelines: number
   failureReasons: FailureReason[]
+  jobInstances: RetryJobInstance[]
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
