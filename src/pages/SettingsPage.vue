@@ -293,6 +293,7 @@
                 :loading="store.isLoading"
                 :disabled="!step2Done"
                 @click="runLoadData"
+                style="margin-right: 10px;"
               >
                 <v-icon start>mdi-download-circle-outline</v-icon>
                 Carregar Dados
@@ -302,6 +303,7 @@
                 color="error"
                 variant="outlined"
                 @click="store.cancelLoad()"
+                style="margin-left: 10px;"
               >
                 <v-icon start>mdi-stop-circle-outline</v-icon>
                 Cancelar
