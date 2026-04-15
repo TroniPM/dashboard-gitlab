@@ -2,7 +2,6 @@
   <v-card
     rounded="lg"
     :variant="active ? 'elevated' : 'tonal'"
-    :color="done ? 'success' : active ? 'surface' : 'surface'"
     :class="{ 'step-inactive': !active }"
   >
     <v-card-text class="pa-5">
