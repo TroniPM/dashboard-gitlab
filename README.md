@@ -7,6 +7,7 @@ Dashboard para análise e monitoramento de pipelines e jobs do GitLab CI, com su
 ## Instalação e execução
 
 ```bash
+# Instalar dependencias
 npm install
 
 # Desenvolvimento
@@ -40,7 +41,7 @@ npm run preview
 3. **Passo 2 – Projetos:** carregue a lista de projetos e selecione quais serão analisados. Deixe em branco para incluir todos.
 4. **Passo 3 – Carregar Dados:** defina o intervalo de datas e clique em **Carregar Dados**. O carregamento ocorre em três fases: projetos → pipelines → jobs.
 
-> As configurações (URL, projetos selecionados, intervalo de datas) são salvas no `localStorage`. O token é salvo em um cookie HttpOnly com validade de 365 dias. Os dados de pipelines, projetos e jobs são armazenados no **IndexedDB** do navegador (banco `gl_dashboard`). Dados salvos no `localStorage` por versões anteriores são migrados automaticamente para o IndexedDB na primeira execução.
+> As configurações (URL, projetos selecionados, intervalo de datas) são salvas no `localStorage`. O token é salvo em um cookie HttpOnly com validade de 365 dias. Os dados de pipelines, projetos e jobs são armazenados no **IndexedDB** do navegador (banco `gl_dashboard`).
 
 ---
 
