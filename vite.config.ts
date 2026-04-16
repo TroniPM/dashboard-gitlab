@@ -2,8 +2,10 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 
-export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/dashboard-gitlab/' : '/',
+export default defineConfig(() => ({
+  // ajuste para o github pages + github actions
+  // quando for buildado no github actions vai colcoar a base para /dashboard-gitlab
+  base: process.env.GITHUB_ACTIONS ? '/dashboard-gitlab/' : '/',
   plugins: [vue()],
   resolve: {
     alias: {
