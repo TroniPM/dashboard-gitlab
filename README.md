@@ -1,3 +1,5 @@
+[![Build & Deploy to GitHub Pages](https://github.com/TroniPM/dashboard-gitlab/actions/workflows/deploy.yml/badge.svg)](https://github.com/TroniPM/dashboard-gitlab/actions/workflows/deploy.yml)
+
 # GitLab CI Dashboard
 
 Dashboard para análise e monitoramento de pipelines e jobs do GitLab CI, com suporte a filtros, métricas agrupadas e exportação de dados.
