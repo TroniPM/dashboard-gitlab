@@ -21,18 +21,22 @@ npm run build
 # Preview do build
 npm run preview
 ```
+
 ---
+
 ## Endpoints utilizados
 
-> **Base URL:** `http://<seu-gitlab>/api/v4`  
+> **Base URL:** `http://<seu-gitlab>/api/v4`
 > Todas as requisições exigem o header `PRIVATE-TOKEN: <seu-token>`
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `GET` | `/user` | Valida as credenciais e obtém o nome do usuário autenticado |
-| `GET` | `/projects` | Lista os projetos dos quais o usuário é membro |
-| `GET` | `/projects/:id/pipelines` | Lista pipelines de um projeto em um intervalo de datas |
-| `GET` | `/projects/:id/pipelines/:pipeline_id/jobs` | Lista os jobs de uma pipeline (incluindo retries) |
+
+| Método | Endpoint                                    | Descrição                                                   |
+| ------- | ------------------------------------------- | ------------------------------------------------------------- |
+| `GET`   | `/user`                                     | Valida as credenciais e obtém o nome do usuário autenticado |
+| `GET`   | `/projects`                                 | Lista os projetos dos quais o usuário é membro              |
+| `GET`   | `/projects/:id/pipelines`                   | Lista pipelines de um projeto em um intervalo de datas        |
+|         |                                             |                                                               |
+| `GET`   | `/projects/:id/pipelines/:pipeline_id/jobs` | Lista os jobs de uma pipeline (incluindo retries)             |
 
 ---
 
@@ -100,11 +104,12 @@ if (result.success) console.log('Olá,', result.user)
 
 Busca todos os projetos dos quais o usuário é membro, paginando automaticamente.
 
-| Parâmetro | Tipo | Descrição |
-|-----------|------|-----------|
-| `client` | `AxiosInstance` | Cliente criado com `createGitLabClient` |
+
+| Parâmetro   | Tipo                      | Descrição                               |
+| ------------ | ------------------------- | ----------------------------------------- |
+| `client`     | `AxiosInstance`           | Cliente criado com`createGitLabClient`    |
 | `onProgress` | `(count: number) => void` | Callback chamado a cada página carregada |
-| `signal` | `AbortSignal` | Permite cancelar a requisição |
+| `signal`     | `AbortSignal`             | Permite cancelar a requisição           |
 
 ```ts
 const projects = await fetchProjects(client, n => console.log(`${n} projetos`))
@@ -141,11 +146,12 @@ const jobs = await fetchJobsForPipeline(client, 42, 1001)
 
 Busca jobs de múltiplas pipelines em lotes paralelos para evitar sobrecarga da API.
 
-| Parâmetro | Padrão | Descrição |
-|-----------|--------|-----------|
-| `batchSize` | `5` | Número de pipelines processadas em paralelo por lote |
-| `delayMs` | `250` | Pausa entre lotes em milissegundos |
-| `onProgress` | — | Callback `(done, total, label)` para atualizar progresso |
+
+| Parâmetro   | Padrão | Descrição                                             |
+| ------------ | ------- | ------------------------------------------------------- |
+| `batchSize`  | `5`     | Número de pipelines processadas em paralelo por lote   |
+| `delayMs`    | `250`   | Pausa entre lotes em milissegundos                      |
+| `onProgress` | —      | Callback`(done, total, label)` para atualizar progresso |
 
 Retorna `Record<pipelineId, GitLabJob[]>`.
 
@@ -159,18 +165,18 @@ const jobs = await fetchJobsBatched(client, pipelines, 5, 250, (done, total) => 
 
 ## Store de Configurações (`src/stores/settings.ts`)
 
-| Propriedade | Tipo | Descrição |
-|-------------|------|-----------|
-| `gitlabUrl` | `string` | URL base da instância GitLab |
-| `token` | `string` | Personal Access Token |
-| `dateRangeStart` | `string` | Data inicial no formato `YYYY-MM-DD` |
-| `dateRangeEnd` | `string` | Data final no formato `YYYY-MM-DD` |
-| `selectedProjectIds` | `number[]` | IDs dos projetos selecionados (vazio = todos) |
-| `loadJobsForAllPipelines` | `boolean` | Se `true`, carrega jobs de pipelines bem-sucedidas também |
-| `maxPipelinesForJobs` | `number` | Limite de pipelines para busca de jobs (padrão: 500) |
-| `onlyProjectsWithData` | `boolean` | Se `true`, exibe apenas projetos que possuem ao menos uma pipeline carregada |
-| `isConfigured` | `computed<boolean>` | `true` se URL e token estiverem preenchidos |
 
+| Propriedade               | Tipo                | Descrição                                                                 |
+| ------------------------- | ------------------- | --------------------------------------------------------------------------- |
+| `gitlabUrl`               | `string`            | URL base da instância GitLab                                               |
+| `token`                   | `string`            | Personal Access Token                                                       |
+| `dateRangeStart`          | `string`            | Data inicial no formato`YYYY-MM-DD`                                         |
+| `dateRangeEnd`            | `string`            | Data final no formato`YYYY-MM-DD`                                           |
+| `selectedProjectIds`      | `number[]`          | IDs dos projetos selecionados (vazio = todos)                               |
+| `loadJobsForAllPipelines` | `boolean`           | Se`true`, carrega jobs de pipelines bem-sucedidas também                   |
+| `maxPipelinesForJobs`     | `number`            | Limite de pipelines para busca de jobs (padrão: 500)                       |
+| `onlyProjectsWithData`    | `boolean`           | Se`true`, exibe apenas projetos que possuem ao menos uma pipeline carregada |
+| `isConfigured`            | `computed<boolean>` | `true` se URL e token estiverem preenchidos                                 |
 
 Persiste as configurações no `indexedDB` e o token em cookie.
 
@@ -197,11 +203,12 @@ Visão focada em um único projeto: métricas, filtros de branch/status e gráfi
 ### `/settings` — Configurações
 
 Assistente em 3 passos:
+
 1. Configurar URL e token, testar conexão.
 2. Carregar lista de projetos e selecionar quais monitorar (com busca e seleção/deseleção em massa).
 3. Definir intervalo de datas (com atalhos rápidos: 7d, 14d, 30d, 60d, 90d), opções avançadas e carregar dados (com barra de progresso por fase e botão de cancelamento).
 4. Definir configuração para mostrar ou esconder projetos que não possuem dados.
-Inclui ações de **exportar** e **importar** dados JSON e botão para **limpar** o cache.
+   Inclui ações de **exportar** e **importar** dados JSON e botão para **limpar** o cache.
 
 ---
 
@@ -231,13 +238,14 @@ O arquivo importado deve ser um JSON no formato `CachedData`:
 
 ## Tecnologias
 
-| Biblioteca | Uso |
-|------------|-----|
-| Vue 3 + Composition API | Framework principal |
-| Vite | Build e dev server |
-| Vuetify 3 | Componentes de UI (Material Design) |
-| Pinia | Gerenciamento de estado |
-| Axios | Requisições HTTP para a API do GitLab |
-| ApexCharts / vue3-apexcharts | Gráficos interativos |
-| js-cookie | Persistência segura do token em cookie |
-| Vue Router (hash mode) | Navegação entre páginas |
+
+| Biblioteca                   | Uso                                     |
+| ---------------------------- | --------------------------------------- |
+| Vue 3 + Composition API      | Framework principal                     |
+| Vite                         | Build e dev server                      |
+| Vuetify 3                    | Componentes de UI (Material Design)     |
+| Pinia                        | Gerenciamento de estado                 |
+| Axios                        | Requisições HTTP para a API do GitLab |
+| ApexCharts / vue3-apexcharts | Gráficos interativos                   |
+| js-cookie                    | Persistência segura do token em cookie |
+| Vue Router (hash mode)       | Navegação entre páginas              |
