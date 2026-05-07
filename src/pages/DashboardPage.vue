@@ -69,13 +69,8 @@
                   clearable
                 />
               </v-col>
-              <v-col cols="12" md="2" class="d-flex align-center gap-2">
-                <v-btn size="small" variant="tonal" @click="resetFilters">
-                  <v-icon start>mdi-filter-off</v-icon> Limpar
-                </v-btn>
-              </v-col>
             </v-row>
-            <v-row dense class="mt-1">
+            <v-row dense class="mt-4">
               <v-col cols="12" sm="6" md="3">
                 <v-text-field
                   v-model="filters.dateStart"
@@ -101,6 +96,13 @@
                   hide-details
                   clearable
                 />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" md="2" class="d-flex align-center gap-2">
+                <v-btn size="small" variant="tonal" @click="resetFilters">
+                  <v-icon start>mdi-filter-off</v-icon> Limpar
+                </v-btn>
               </v-col>
             </v-row>
           </v-card-text>

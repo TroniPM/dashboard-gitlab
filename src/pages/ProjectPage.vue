@@ -38,7 +38,7 @@
             <v-col cols="auto">
               <v-icon size="18">mdi-source-branch</v-icon>
             </v-col>
-            <v-col cols="12" sm="4">
+            <v-col cols="3" sm="6" md="3">
               <v-autocomplete
                 v-model="selectedBranches"
                 :items="availableBranches"
@@ -52,7 +52,7 @@
                 clearable
               />
             </v-col>
-            <v-col cols="12" sm="3">
+            <v-col cols="2" sm="5" md="2">
               <v-select
                 v-model="selectedStatuses"
                 :items="statusItems"
@@ -66,14 +66,7 @@
                 clearable
               />
             </v-col>
-            <v-col>
-              <v-btn size="small" variant="text" @click="selectedBranches = []; selectedStatuses = []; selectedDateStart = null; selectedDateEnd = null">
-                Limpar
-              </v-btn>
-            </v-col>
-          </v-row>
-          <v-row dense class="mt-1">
-            <v-col cols="12" sm="6" md="3">
+            <v-col cols="2" sm="5" md="2">
               <v-text-field
                 v-model="selectedDateStart"
                 type="date"
@@ -86,7 +79,7 @@
                 clearable
               />
             </v-col>
-            <v-col cols="12" sm="6" md="3">
+            <v-col cols="2" sm="5" md="2">
               <v-text-field
                 v-model="selectedDateEnd"
                 type="date"
@@ -98,6 +91,11 @@
                 hide-details
                 clearable
               />
+            </v-col>
+            <v-col>
+              <v-btn size="small" variant="text" @click="selectedBranches = []; selectedStatuses = []; selectedDateStart = null; selectedDateEnd = null">
+                Limpar
+              </v-btn>
             </v-col>
           </v-row>
         </v-card-text>
