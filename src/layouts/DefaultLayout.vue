@@ -70,7 +70,7 @@
 
       <v-app-bar-title>
         <span class="text-primary font-weight-bold">GL</span>
-        {{ ' ' + (route.meta.title as string ?? 'Dashboard') }}
+        {{ ' ' + pageTitle }}
       </v-app-bar-title>
 
       <template #append>
@@ -177,6 +177,15 @@ import { useSettingsStore } from '@/stores/settings'
 const route = useRoute()
 const store = useGitLabStore()
 const settings = useSettingsStore()
+
+const pageTitle = computed(() => {
+  const base = route.meta.title as string ?? 'Dashboard'
+  if (route.name === 'project') {
+    const project = store.projects.find(p => p.id === Number(route.params.id))
+    if (project) return `${base}: ${project.name}`
+  }
+  return base
+})
 
 const drawer = ref(true)
 const rail = ref(false)
