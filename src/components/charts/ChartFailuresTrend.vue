@@ -11,7 +11,7 @@
 
     <v-card-text v-else class="pa-2">
       <apexchart
-        :key="isDark ? 'dark' : 'light'"
+        :key="`${isDark}-${data[0]?.date}-${data[data.length - 1]?.date}-${data.length}`"
         type="area"
         height="260"
         :options="chartOptions"
