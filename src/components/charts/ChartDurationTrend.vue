@@ -92,7 +92,18 @@ const chartOptions = computed(() => ({
     toolbar: { show: false },
     zoom: { enabled: false },
     animations: { enabled: true, easing: 'easeinout', speed: 400 },
-    foreColor: labelColor.value
+    foreColor: labelColor.value,
+    defaultLocale: 'pt-br',
+    locales: [{
+      name: 'pt-br',
+      options: {
+        months: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+        shortMonths: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+        days: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
+        shortDays: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+        toolbar: { download: 'Download SVG', selection: 'Seleção', selectionZoom: 'Zoom', zoomIn: 'Ampliar', zoomOut: 'Reduzir', pan: 'Mover', reset: 'Resetar Zoom' }
+      }
+    }]
   },
   theme: { mode: isDark.value ? 'dark' : 'light' },
   colors: ['#ff9800', barColor.value],
@@ -111,7 +122,7 @@ const chartOptions = computed(() => ({
   },
   xaxis: {
     type: 'datetime',
-    labels: { datetimeUTC: false, style: { colors: labelColor.value } },
+    labels: { datetimeUTC: false, datetimeFormatter: { year: 'yyyy', month: "MMM/yy", day: 'dd MMM', hour: 'HH:mm' }, style: { colors: labelColor.value } },
     axisBorder: { color: gridColor.value },
     axisTicks: { color: gridColor.value }
   },
