@@ -229,11 +229,12 @@ export function useMetrics(filters?: Ref<MetricsFilters>) {
   // ─── Duration trend (daily avg, with per-stage breakdown) ─────────────────
 
   const durationTrend = computed(() => {
-    const dayMap: Record<string, { durations: number[]; byStage: Record<string, number[]> }> = {}
+    const dayMap: Record<string, { durations: number[]; count: number; byStage: Record<string, number[]> }> = {}
 
     for (const pipeline of allPipelines.value) {
       const day = pipeline.created_at.split('T')[0]
-      dayMap[day] ??= { durations: [], byStage: {} }
+      dayMap[day] ??= { durations: [], count: 0, byStage: {} }
+      dayMap[day].count++
 
       const jobs = store.jobs[pipeline.id]
       let dur: number | null = null
@@ -261,6 +262,7 @@ export function useMetrics(filters?: Ref<MetricsFilters>) {
     return Object.entries(dayMap)
       .map(([date, v]) => ({
         date,
+        count: v.count,
         avgDurationSec: v.durations.length > 0
           ? Math.round(v.durations.reduce((a, b) => a + b, 0) / v.durations.length)
           : 0,
