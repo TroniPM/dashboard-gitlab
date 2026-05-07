@@ -161,6 +161,16 @@
         </v-col>
       </v-row>
 
+      <!-- Duration trend -->
+      <v-row dense class="mb-4">
+        <v-col cols="12">
+          <ChartDurationTrend
+            :data="metrics.durationTrend.value"
+            :stages="metrics.availableStages.value"
+          />
+        </v-col>
+      </v-row>
+
       <!-- Failures by project + by stage -->
       <v-row dense class="mb-4">
         <v-col cols="12" md="7">
@@ -219,6 +229,7 @@ import { useMetrics } from '@/composables/useMetrics'
 import MetricCard from '@/components/common/MetricCard.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import ChartFailuresTrend from '@/components/charts/ChartFailuresTrend.vue'
+import ChartDurationTrend from '@/components/charts/ChartDurationTrend.vue'
 import ChartFailuresByProject from '@/components/charts/ChartFailuresByProject.vue'
 import ChartFailuresByStage from '@/components/charts/ChartFailuresByStage.vue'
 import ChartFailureReasons from '@/components/charts/ChartFailureReasons.vue'

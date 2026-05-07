@@ -226,6 +226,62 @@ export function useMetrics(filters?: Ref<MetricsFilters>) {
       .sort((a, b) => a.date.localeCompare(b.date))
   })
 
+  // ─── Duration trend (daily avg, with per-stage breakdown) ─────────────────
+
+  const durationTrend = computed(() => {
+    const dayMap: Record<string, { durations: number[]; byStage: Record<string, number[]> }> = {}
+
+    for (const pipeline of allPipelines.value) {
+      const day = pipeline.created_at.split('T')[0]
+      dayMap[day] ??= { durations: [], byStage: {} }
+
+      const jobs = store.jobs[pipeline.id]
+      let dur: number | null = null
+      if (jobs && jobs.length > 0) {
+        const sum = jobs.reduce((acc, j) => acc + (j.duration ?? 0), 0)
+        if (sum > 0) dur = sum
+      }
+      if (dur === null && pipeline.duration != null) dur = pipeline.duration
+      if (dur === null && pipeline.finished_at && pipeline.started_at) {
+        const ms = new Date(pipeline.finished_at).getTime() - new Date(pipeline.started_at).getTime()
+        if (ms > 0) dur = ms / 1000
+      }
+      if (dur !== null && dur > 0) dayMap[day].durations.push(dur)
+
+      if (jobs) {
+        for (const j of jobs) {
+          if (j.duration && j.duration > 0) {
+            dayMap[day].byStage[j.stage] ??= []
+            dayMap[day].byStage[j.stage].push(j.duration)
+          }
+        }
+      }
+    }
+
+    return Object.entries(dayMap)
+      .map(([date, v]) => ({
+        date,
+        avgDurationSec: v.durations.length > 0
+          ? Math.round(v.durations.reduce((a, b) => a + b, 0) / v.durations.length)
+          : 0,
+        byStage: Object.fromEntries(
+          Object.entries(v.byStage).map(([stage, durs]) => [
+            stage,
+            Math.round(durs.reduce((a, b) => a + b, 0) / durs.length)
+          ])
+        )
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+  })
+
+  // ─── Available stages ─────────────────────────────────────────────────────
+
+  const availableStages = computed((): string[] => {
+    const set = new Set<string>()
+    for (const j of allLoadedJobs.value) set.add(j.stage)
+    return [...set].sort()
+  })
+
   // ─── Available branches ───────────────────────────────────────────────────
 
   const availableBranches = computed((): string[] => {
@@ -263,6 +319,8 @@ export function useMetrics(filters?: Ref<MetricsFilters>) {
     failureReasons,
     retryStats,
     failuresTrend,
+    durationTrend,
+    availableStages,
     availableBranches,
     sourceDistribution
   }

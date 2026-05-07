@@ -2,7 +2,7 @@
   <v-card rounded="lg" variant="tonal" color="surface">
     <v-card-title class="pa-4 pb-0 text-body-1 font-weight-medium text-high-emphasis">
       <v-icon start size="18">mdi-chart-timeline-variant</v-icon>
-      Tendência de Pipelines
+      Tendência de falhas
     </v-card-title>
 
     <v-card-text v-if="data.length === 0" class="text-center text-disabled py-8">
