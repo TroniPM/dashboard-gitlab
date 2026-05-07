@@ -75,6 +75,34 @@
                 </v-btn>
               </v-col>
             </v-row>
+            <v-row dense class="mt-1">
+              <v-col cols="12" sm="6" md="3">
+                <v-text-field
+                  v-model="filters.dateStart"
+                  type="date"
+                  label="Data inicial"
+                  :min="metrics.globalDateRange.value.min"
+                  :max="filters.dateEnd || metrics.globalDateRange.value.max"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  clearable
+                />
+              </v-col>
+              <v-col cols="12" sm="6" md="3">
+                <v-text-field
+                  v-model="filters.dateEnd"
+                  type="date"
+                  label="Data final"
+                  :min="filters.dateStart || metrics.globalDateRange.value.min"
+                  :max="metrics.globalDateRange.value.max"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  clearable
+                />
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-expand-transition>
       </v-card>
@@ -242,13 +270,17 @@ const filtersOpen = ref(false)
 const filters = reactive({
   projectIds: [] as number[],
   branches: [] as string[],
-  statuses: [] as string[]
+  statuses: [] as string[],
+  dateStart: null as string | null,
+  dateEnd: null as string | null
 })
 
 const filtersRef = computed(() => ({
   projectIds: filters.projectIds,
   branches: filters.branches,
-  statuses: filters.statuses
+  statuses: filters.statuses,
+  dateStart: filters.dateStart,
+  dateEnd: filters.dateEnd
 }))
 
 const metrics = useMetrics(filtersRef)
@@ -292,5 +324,7 @@ function resetFilters() {
   filters.projectIds = []
   filters.branches = []
   filters.statuses = []
+  filters.dateStart = null
+  filters.dateEnd = null
 }
 </script>

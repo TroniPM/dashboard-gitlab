@@ -7,6 +7,8 @@ export interface MetricsFilters {
   projectIds?: number[]
   branches?: string[]
   statuses?: string[]
+  dateStart?: string | null
+  dateEnd?: string | null
 }
 
 export function useMetrics(filters?: Ref<MetricsFilters>) {
@@ -30,11 +32,15 @@ export function useMetrics(filters?: Ref<MetricsFilters>) {
   const allPipelines = computed((): GitLabPipeline[] => {
     const branches = filters?.value.branches
     const statuses = filters?.value.statuses
+    const dateS = filters?.value.dateStart
+    const dateE = filters?.value.dateEnd
     const result: GitLabPipeline[] = []
     for (const p of scopedProjects.value) {
       let plines = store.pipelines[p.id] ?? []
       if (branches && branches.length > 0) plines = plines.filter(pl => branches.includes(pl.ref))
       if (statuses && statuses.length > 0) plines = plines.filter(pl => statuses.includes(pl.status))
+      if (dateS) plines = plines.filter(pl => pl.created_at.slice(0, 10) >= dateS)
+      if (dateE) plines = plines.filter(pl => pl.created_at.slice(0, 10) <= dateE)
       result.push(...plines)
     }
     return result
@@ -107,7 +113,11 @@ export function useMetrics(filters?: Ref<MetricsFilters>) {
     scopedProjects.value.map(p => {
       let plines = store.pipelines[p.id] ?? []
       const branches = filters?.value.branches
+      const dateS = filters?.value.dateStart
+      const dateE = filters?.value.dateEnd
       if (branches && branches.length > 0) plines = plines.filter(pl => branches.includes(pl.ref))
+      if (dateS) plines = plines.filter(pl => pl.created_at.slice(0, 10) >= dateS)
+      if (dateE) plines = plines.filter(pl => pl.created_at.slice(0, 10) <= dateE)
       const total = plines.length
       const failed = plines.filter(pl => pl.status === 'failed').length
       return {
@@ -296,6 +306,21 @@ export function useMetrics(filters?: Ref<MetricsFilters>) {
     return [...set].sort()
   })
 
+  // ─── Global date range (across ALL imported data) ──────────────────────────
+
+  const globalDateRange = computed((): { min: string; max: string } => {
+    let min = ''
+    let max = ''
+    for (const pipelineList of Object.values(store.pipelines)) {
+      for (const pl of pipelineList) {
+        const d = pl.created_at.slice(0, 10)
+        if (!min || d < min) min = d
+        if (!max || d > max) max = d
+      }
+    }
+    return { min, max }
+  })
+
   // ─── Pipeline source distribution ─────────────────────────────────────────
 
   const sourceDistribution = computed(() => {
@@ -324,6 +349,7 @@ export function useMetrics(filters?: Ref<MetricsFilters>) {
     durationTrend,
     availableStages,
     availableBranches,
-    sourceDistribution
+    sourceDistribution,
+    globalDateRange
   }
 }

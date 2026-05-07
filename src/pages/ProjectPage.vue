@@ -67,9 +67,37 @@
               />
             </v-col>
             <v-col>
-              <v-btn size="small" variant="text" @click="selectedBranches = []; selectedStatuses = []">
+              <v-btn size="small" variant="text" @click="selectedBranches = []; selectedStatuses = []; selectedDateStart = null; selectedDateEnd = null">
                 Limpar
               </v-btn>
+            </v-col>
+          </v-row>
+          <v-row dense class="mt-1">
+            <v-col cols="12" sm="6" md="3">
+              <v-text-field
+                v-model="selectedDateStart"
+                type="date"
+                label="Data inicial"
+                :min="metrics.globalDateRange.value.min"
+                :max="selectedDateEnd || metrics.globalDateRange.value.max"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+              />
+            </v-col>
+            <v-col cols="12" sm="6" md="3">
+              <v-text-field
+                v-model="selectedDateEnd"
+                type="date"
+                label="Data final"
+                :min="selectedDateStart || metrics.globalDateRange.value.min"
+                :max="metrics.globalDateRange.value.max"
+                density="compact"
+                variant="outlined"
+                hide-details
+                clearable
+              />
             </v-col>
           </v-row>
         </v-card-text>
@@ -229,11 +257,15 @@ const project = computed(() => store.projects.find(p => p.id === projectId.value
 
 const selectedBranches = ref<string[]>([])
 const selectedStatuses = ref<string[]>([])
+const selectedDateStart = ref<string | null>(null)
+const selectedDateEnd = ref<string | null>(null)
 
 const filtersRef = computed(() => ({
   projectIds: [projectId.value],
   branches: selectedBranches.value,
-  statuses: selectedStatuses.value
+  statuses: selectedStatuses.value,
+  dateStart: selectedDateStart.value,
+  dateEnd: selectedDateEnd.value
 }))
 
 const metrics = useMetrics(filtersRef)
