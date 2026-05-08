@@ -6,16 +6,7 @@
         prepend-icon="mdi-gitlab"
         title="GitLab Dashboard"
         nav
-      >
-        <template #append>
-          <v-btn
-            :icon="rail ? 'mdi-chevron-right' : 'mdi-chevron-left'"
-            variant="text"
-            size="small"
-            @click="rail = !rail"
-          />
-        </template>
-      </v-list-item>
+      />
 
       <v-divider />
 
@@ -69,8 +60,8 @@
       <v-app-bar-nav-icon @click="drawer = !drawer" />
 
       <v-app-bar-title>
-        <span class="text-primary font-weight-bold">GL</span>
-        {{ ' ' + pageTitle }}
+        <!-- <span class="text-primary font-weight-bold">GL</span> -->
+        {{ pageTitle }}
       </v-app-bar-title>
 
       <template #append>
