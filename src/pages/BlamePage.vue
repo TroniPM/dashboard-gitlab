@@ -321,25 +321,34 @@
         density="compact"
         class="mb-4"
       >
-        Nenhum dado carregado ainda. Clique em <strong>Carregar todos os projetos configurados</strong>.
+        Nenhum dado carregado ainda. Clique em <strong>Carregar todos os projetos configurados</strong> ou no botão de recarregar em cada projeto.
       </v-alert>
 
       <!-- ── VIEW: BY PROJECT ── -->
       <template v-if="blame.view === 'byProject'">
         <div
-          v-for="(entries, projectId) in blame.byProject"
+          v-for="projectId in configuredProjectIds"
           :key="projectId"
           class="mb-4"
         >
           <v-card variant="outlined">
             <v-card-title
               class="d-flex align-center cursor-pointer"
-              @click="toggleProjectExpand(Number(projectId))"
+              @click="toggleProjectExpand(projectId)"
             >
               <v-icon start color="amber">mdi-source-repository</v-icon>
-              {{ projectName(Number(projectId)) }}
+              {{ projectName(projectId) }}
               <v-chip class="ml-2" size="x-small" color="primary" variant="flat">
-                {{ entries.length }} path{{ entries.length !== 1 ? 's' : '' }}
+                {{ (blameStore.watchedPaths[projectId] ?? []).length }} paths
+              </v-chip>
+              <v-chip
+                v-if="(blame.byProject[projectId] ?? []).some(e => e.isNew)"
+                class="ml-1"
+                size="x-small"
+                color="error"
+                variant="flat"
+              >
+                NOVO
               </v-chip>
               <v-chip
                 class="ml-1"
@@ -348,9 +357,21 @@
                 variant="tonal"
                 prepend-icon="mdi-source-branch"
               >
-                {{ blameStore.watchedBranches[Number(projectId)] ?? 'HEAD' }}
+                {{ blameStore.watchedBranches[projectId] ?? 'HEAD' }}
               </v-chip>
               <v-spacer />
+              <v-btn
+                icon
+                size="small"
+                variant="text"
+                color="primary"
+                :loading="reloadingProjectId === projectId"
+                :disabled="blameStore.isLoading"
+                @click.stop="reloadProject(projectId)"
+              >
+                <v-icon>mdi-refresh</v-icon>
+                <v-tooltip activator="parent">Recarregar este projeto</v-tooltip>
+              </v-btn>
               <v-btn
                 icon
                 size="small"
@@ -361,13 +382,19 @@
                 <v-icon>mdi-trash-can-outline</v-icon>
                 <v-tooltip activator="parent">Remover projeto da watchlist</v-tooltip>
               </v-btn>
-              <v-icon>{{ expandedProjects.has(Number(projectId)) ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+              <v-icon>{{ expandedProjects.has(projectId) ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
             </v-card-title>
 
             <v-expand-transition>
-              <div v-if="expandedProjects.has(Number(projectId))">
+              <div v-if="expandedProjects.has(projectId)">
                 <v-divider />
-                <BlameTable :entries="entries" />
+                <template v-if="(blame.byProject[projectId] ?? []).length > 0">
+                  <BlameTable :entries="blame.byProject[projectId]" />
+                </template>
+                <div v-else class="pa-4 text-caption text-disabled text-center">
+                  Sem resultados carregados para este projeto. Clique em
+                  <v-icon size="14">mdi-refresh</v-icon> para carregar.
+                </div>
               </div>
             </v-expand-transition>
           </v-card>
@@ -439,6 +466,13 @@ const configuredProjects = computed(() =>
   syncedProjects.value.filter(p => (blameStore.watchedPaths[p.id]?.length ?? 0) > 0)
 )
 
+/** IDs of all configured projects (drives by-project cards, regardless of loaded data) */
+const configuredProjectIds = computed(() =>
+  Object.keys(blameStore.watchedPaths)
+    .map(Number)
+    .filter(id => (blameStore.watchedPaths[id]?.length ?? 0) > 0)
+)
+
 const filteredTreeItems = computed(() => {
   if (!treeSearch.value) return treeItems.value
   const q = treeSearch.value.toLowerCase()
@@ -454,6 +488,8 @@ const loadPercent = computed(() => {
 
 const expandedProjects = ref(new Set<number>())
 
+const reloadingProjectId = ref<number | null>(null)
+
 function toggleProjectExpand(id: number) {
   if (expandedProjects.value.has(id)) {
     expandedProjects.value.delete(id)
@@ -468,6 +504,10 @@ function toggleProjectExpand(id: number) {
 
 function projectName(id: number): string {
   return gitlabStore.projects.find(p => p.id === id)?.name_with_namespace ?? `Projeto #${id}`
+}
+
+function projectInfo(id: number) {
+  return gitlabStore.projects.find(p => p.id === id)
 }
 
 function togglePath(path: string) {
@@ -544,6 +584,16 @@ async function loadAll() {
   await blameStore.loadAll(projects)
   // Auto-expand all projects
   expandedProjects.value = new Set(projects.map(p => p.id))
+}
+
+async function reloadProject(id: number) {
+  const project = projectInfo(id)
+  if (!project) return
+  reloadingProjectId.value = id
+  await blameStore.loadProject({ id: project.id, name: project.name, web_url: project.web_url })
+  reloadingProjectId.value = null
+  // Auto-expand the reloaded project
+  expandedProjects.value = new Set([...expandedProjects.value, id])
 }
 </script>
 

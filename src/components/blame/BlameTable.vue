@@ -2,6 +2,7 @@
   <v-data-table
     :headers="headers"
     :items="rows"
+    :sort-by="[{ key: 'date', order: 'desc' }]"
     density="compact"
     :items-per-page="25"
     :items-per-page-options="[10, 25, 50, 100]"
