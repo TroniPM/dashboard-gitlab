@@ -177,7 +177,7 @@ export async function fetchBranches(
   return fetchAllPages<GitLabBranch>(
     client,
     `/projects/${projectId}/repository/branches`,
-    { order_by: 'name', sort: 'asc' }
+    { order_by: 'name'}
   )
 }
 
