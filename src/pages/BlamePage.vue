@@ -377,7 +377,7 @@
                 size="small"
                 variant="text"
                 color="error"
-                @click.stop="blameStore.removeProject(Number(projectId))"
+                @click.stop="askRemoveProject(projectId)"
               >
                 <v-icon>mdi-trash-can-outline</v-icon>
                 <v-tooltip activator="parent">Remover projeto da watchlist</v-tooltip>
@@ -594,6 +594,16 @@ async function reloadProject(id: number) {
   reloadingProjectId.value = null
   // Auto-expand the reloaded project
   expandedProjects.value = new Set([...expandedProjects.value, id])
+}
+
+function askRemoveProject(id: number) {
+  const project = projectInfo(id)
+  if (!project) return
+  if (confirm(`Tem certeza que deseja remover o projeto "${project.name}" da watchlist?`)) {
+    blameStore.removeProject(id)
+    expandedProjects.value.delete(id)
+    expandedProjects.value = new Set(expandedProjects.value)
+  }
 }
 </script>
 
