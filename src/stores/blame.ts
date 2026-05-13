@@ -8,6 +8,12 @@ import { useSettingsStore } from './settings'
 const LS_KEY = 'gl_blame_settings'
 const LS_BRANCH_KEY = 'gl_blame_branches'
 const LS_PREV_KEY = 'gl_blame_prev_commits'
+const LS_RESULTS_LEGACY_KEY = 'gl_blame_results' // kept only for one-time migration
+
+const IDB_DB_NAME = 'gl_dashboard'
+const IDB_DB_VERSION = 1
+const IDB_STORE = 'cache'
+const IDB_BLAME_KEY = 'blame_results'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,6 +68,67 @@ function savePersistedPrevCommits(data: Record<string, string>) {
   localStorage.setItem(LS_PREV_KEY, JSON.stringify(data))
 }
 
+// ─── IndexedDB helpers (blame) ───────────────────────────────────────────────
+
+function _openIDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_DB_NAME, IDB_DB_VERSION)
+    req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE)
+    req.onsuccess = () => resolve(req.result)
+    req.onerror = () => reject(req.error)
+  })
+}
+
+async function _idbGet<T>(key: string): Promise<T | undefined> {
+  const db = await _openIDB()
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(key)
+    req.onsuccess = () => resolve(req.result as T | undefined)
+    req.onerror = () => reject(req.error)
+  })
+}
+
+async function _idbSet(key: string, value: unknown): Promise<void> {
+  const db = await _openIDB()
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(IDB_STORE, 'readwrite').objectStore(IDB_STORE).put(value, key)
+    req.onsuccess = () => resolve()
+    req.onerror = () => reject(req.error)
+  })
+}
+
+async function _idbDelete(key: string): Promise<void> {
+  const db = await _openIDB()
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(IDB_STORE, 'readwrite').objectStore(IDB_STORE).delete(key)
+    req.onsuccess = () => resolve()
+    req.onerror = () => reject(req.error)
+  })
+}
+
+async function loadResultsFromIDB(): Promise<Record<string, BlameEntry>> {
+  try {
+    // One-time migration from localStorage → IndexedDB
+    const legacy = localStorage.getItem(LS_RESULTS_LEGACY_KEY)
+    if (legacy) {
+      try {
+        const parsed = JSON.parse(legacy) as Record<string, BlameEntry>
+        await _idbSet(IDB_BLAME_KEY, parsed)
+        localStorage.removeItem(LS_RESULTS_LEGACY_KEY)
+      } catch { /* ignore */ }
+    }
+    return (await _idbGet<Record<string, BlameEntry>>(IDB_BLAME_KEY)) ?? {}
+  } catch {
+    return {}
+  }
+}
+
+async function saveResultsToIDB(data: Record<string, BlameEntry>): Promise<void> {
+  try {
+    await _idbSet(IDB_BLAME_KEY, data)
+  } catch { /* ignore */ }
+}
+
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useBlameStore = defineStore('blame', () => {
@@ -76,8 +143,11 @@ export const useBlameStore = defineStore('blame', () => {
   /** Persisted: last-seen commit ids, keyed by `${projectId}::${path}` */
   const previousCommitIds = ref<Record<string, string>>(loadPersistedPrevCommits())
 
-  /** Ephemeral: last loaded commit data, keyed by `${projectId}::${path}` */
+  /** Persisted (IndexedDB): last loaded commit data, keyed by `${projectId}::${path}` */
   const commitResults = ref<Record<string, BlameEntry>>({})
+
+  // Load persisted results from IDB on store creation (async)
+  loadResultsFromIDB().then(data => { commitResults.value = data })
 
   const isLoading = ref(false)
   const loadingError = ref<string | null>(null)
@@ -114,12 +184,13 @@ export const useBlameStore = defineStore('blame', () => {
     savePersistedPaths(watchedPaths.value)
     savePersistedBranches(watchedBranches.value)
 
-    // Also remove from ephemeral results
+    // Also remove from results
     const filtered: Record<string, BlameEntry> = {}
     for (const [k, v] of Object.entries(commitResults.value)) {
       if (v.projectId !== projectId) filtered[k] = v
     }
     commitResults.value = filtered
+    saveResultsToIDB(filtered) // fire-and-forget
   }
 
   function cancelLoad() {
@@ -196,6 +267,7 @@ export const useBlameStore = defineStore('blame', () => {
       previousCommitIds.value = newPrevIds
       savePersistedPrevCommits(newPrevIds)
       commitResults.value = newResults
+      saveResultsToIDB(newResults) // fire-and-forget
     }
 
     isLoading.value = false
@@ -234,6 +306,7 @@ export const useBlameStore = defineStore('blame', () => {
       previousCommitIds.value = newPrevIds
       savePersistedPrevCommits(newPrevIds)
       commitResults.value = updatedResults
+      saveResultsToIDB(updatedResults) // fire-and-forget
     }
 
     isLoading.value = false
