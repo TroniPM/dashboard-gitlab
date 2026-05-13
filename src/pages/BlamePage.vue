@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h6 font-weight-bold mb-1">BLAME — Watchlist de Arquivos Críticos</div>
+    <div class="text-h6 font-weight-bold mb-1">Blame — Watchlist de Arquivos Críticos</div>
     <div class="text-caption text-disabled mb-5">
       Monitore arquivos e pastas de interesse e visualize quem os alterou por último.
     </div>

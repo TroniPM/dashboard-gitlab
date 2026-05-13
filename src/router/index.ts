@@ -26,7 +26,7 @@ export default createRouter({
       path: '/blame',
       name: 'blame',
       component: () => import('@/pages/BlamePage.vue'),
-      meta: { title: 'BLAME — Watchlist' }
+      meta: { title: 'Blame — Watchlist' }
     }
   ]
 })

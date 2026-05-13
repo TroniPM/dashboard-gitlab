@@ -19,7 +19,7 @@
         />
         <v-list-item
           prepend-icon="mdi-eye-outline"
-          title="BLAME"
+          title="Blame"
           :to="{ name: 'blame' }"
           rounded="lg"
         />
