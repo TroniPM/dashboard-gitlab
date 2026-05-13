@@ -285,9 +285,10 @@ export const useGitLabStore = defineStore('gitlab', () => {
         allPipelines.push(...pList)
       }
 
-      const pipelinesForJobs = settings.loadJobsForAllPipelines
+      const pipelinesForJobs = (settings.loadJobsForAllPipelines
         ? allPipelines
         : allPipelines.filter(p => p.status === 'failed')
+      ).filter(p => !jobs.value[p.id]?.length)
 
       const capped = pipelinesForJobs.slice(0, settings.maxPipelinesForJobs)
 
