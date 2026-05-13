@@ -18,7 +18,7 @@
         <!-- 1 — Selecionar projeto e branch -->
         <v-row dense>
           <v-col cols="12" md="5">
-            <v-select
+            <v-autocomplete
               v-model="setupProjectId"
               :items="syncedProjects"
               item-title="name_with_namespace"
@@ -29,6 +29,7 @@
               density="compact"
               hide-details
               clearable
+              auto-select-first
               @update:model-value="onProjectSelected"
             />
           </v-col>
@@ -190,7 +191,7 @@
           <div class="text-subtitle-2 font-weight-medium mb-3">Adicionar novo projeto à watchlist</div>
           <v-row dense>
             <v-col cols="12" md="4">
-              <v-select
+              <v-autocomplete
                 v-model="setupProjectId"
                 :items="syncedProjectsNotYetConfigured"
                 item-title="name_with_namespace"
@@ -200,6 +201,7 @@
                 density="compact"
                 hide-details
                 clearable
+                auto-select-first
                 @update:model-value="onProjectSelected"
               />
             </v-col>
