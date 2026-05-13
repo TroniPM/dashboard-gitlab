@@ -297,6 +297,9 @@
                 <v-icon start>mdi-download-circle-outline</v-icon>
                 Carregar Dados
               </v-btn>
+              <span class="text-caption text-disabled" style="margin-left: 10px; max-width: 420px;">
+                Pipelines já mapeadas não terão seus jobs reconsultados.
+              </span>
               <v-btn
                 v-if="store.isLoading"
                 color="error"
