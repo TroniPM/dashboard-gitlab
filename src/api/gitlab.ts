@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance } from 'axios'
-import type { GitLabProject, GitLabPipeline, GitLabJob } from '@/types/gitlab'
+import type { GitLabProject, GitLabPipeline, GitLabJob, GitLabTreeItem, GitLabBranch, GitLabCommit } from '@/types/gitlab'
 
 // ─── Client Factory ───────────────────────────────────────────────────────────
 
@@ -153,4 +153,47 @@ export async function fetchJobsBatched(
   }
 
   return result
+}
+
+// ─── Blame / Repository Tree ─────────────────────────────────────────────────
+
+export async function fetchRepositoryTree(
+  client: AxiosInstance,
+  projectId: number,
+  recursive = true,
+  ref?: string
+): Promise<GitLabTreeItem[]> {
+  return fetchAllPages<GitLabTreeItem>(
+    client,
+    `/projects/${projectId}/repository/tree`,
+    { recursive, ...(ref ? { ref } : {}) }
+  )
+}
+
+export async function fetchBranches(
+  client: AxiosInstance,
+  projectId: number
+): Promise<GitLabBranch[]> {
+  return fetchAllPages<GitLabBranch>(
+    client,
+    `/projects/${projectId}/repository/branches`,
+    { order_by: 'name', sort: 'asc' }
+  )
+}
+
+export async function fetchLastCommitForPath(
+  client: AxiosInstance,
+  projectId: number,
+  path: string,
+  ref?: string
+): Promise<GitLabCommit | null> {
+  try {
+    const response = await client.get<GitLabCommit[]>(
+      `/projects/${projectId}/repository/commits`,
+      { params: { path, per_page: 1, ...(ref ? { ref_name: ref } : {}) } }
+    )
+    return response.data[0] ?? null
+  } catch {
+    return null
+  }
 }

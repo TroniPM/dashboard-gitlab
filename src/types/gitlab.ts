@@ -115,6 +115,33 @@ export interface GitLabJob {
   }
 }
 
+// ─── Blame / Repository Tree ─────────────────────────────────────────────────
+
+export interface GitLabTreeItem {
+  id: string
+  name: string
+  type: 'blob' | 'tree'
+  path: string
+  mode: string
+}
+
+export interface GitLabBranch {
+  name: string
+  default: boolean
+  web_url: string
+}
+
+export interface GitLabCommit {
+  id: string
+  short_id: string
+  title: string
+  author_name: string
+  authored_date: string
+  committed_date: string
+  message: string
+  web_url: string
+}
+
 // ─── Cache ──────────────────────────────────────────────────────────────────
 
 export interface CachedData {

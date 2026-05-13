@@ -16,7 +16,10 @@
         <v-btn :to="{ name: 'dashboard' }" variant="text" icon="mdi-arrow-left" />
         <div>
           <div class="text-h6 font-weight-bold">{{ project.name }}</div>
-          <div class="text-caption text-disabled">{{ project.path_with_namespace }}</div>
+          <div class="text-caption text-disabled">
+            {{ project.path_with_namespace }}
+            <v-chip size="x-small" variant="tonal" color="secondary" class="ml-1">ID: {{ project.id }}</v-chip>
+          </div>
         </div>
         <v-spacer />
         <v-btn

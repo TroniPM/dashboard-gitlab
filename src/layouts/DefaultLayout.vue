@@ -18,6 +18,12 @@
           rounded="lg"
         />
         <v-list-item
+          prepend-icon="mdi-eye-outline"
+          title="BLAME"
+          :to="{ name: 'blame' }"
+          rounded="lg"
+        />
+        <v-list-item
           prepend-icon="mdi-cog-outline"
           title="Configurações"
           :to="{ name: 'settings' }"

@@ -21,6 +21,12 @@ export default createRouter({
       name: 'settings',
       component: () => import('@/pages/SettingsPage.vue'),
       meta: { title: 'Configurações' }
+    },
+    {
+      path: '/blame',
+      name: 'blame',
+      component: () => import('@/pages/BlamePage.vue'),
+      meta: { title: 'BLAME — Watchlist' }
     }
   ]
 })
